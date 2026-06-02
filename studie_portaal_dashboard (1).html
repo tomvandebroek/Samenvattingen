@@ -59,7 +59,7 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-slate-900 tracking-tight leading-none">StudiePortaal</h1>
-                    <span class="text-xs text-indigo-600 font-medium tracking-wider uppercase">My Hub v2.5 Ã¢ÂÂ¨</span>
+                    <span class="text-xs text-indigo-600 font-medium tracking-wider uppercase">My Hub v2.5 ✨</span>
                 </div>
             </div>
             <!-- Sluitknop voor mobiel -->
@@ -118,7 +118,7 @@
             <div class="flex items-center space-x-4">
                 <div class="flex items-center space-x-2 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
                     <i class="fa-solid fa-fire-flame-curved text-amber-500"></i>
-                    <span>3 Dagen Streak!</span>
+                    <span id="streakDisplay">0 Dagen Streak!</span>
                 </div>
             </div>
         </header>
@@ -134,7 +134,7 @@
                     <div class="absolute right-10 -top-10 w-32 h-32 bg-violet-600/20 rounded-full blur-2xl"></div>
                     <div class="relative z-10 space-y-3 max-w-lg">
                         <span class="bg-indigo-500/30 text-indigo-200 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">Studie Dashboard</span>
-                        <h3 class="text-3xl font-extrabold tracking-tight md:text-4xl">Maak studeren interactief en efficiÃÂ«nt.</h3>
+                        <h3 class="text-3xl font-extrabold tracking-tight md:text-4xl">Maak studeren interactief en efficiënt.</h3>
                         <p class="text-indigo-200 text-sm md:text-base leading-relaxed">Kies een vak uit het linkermenu om direct je samenvattingen te lezen, belangrijke termen te bestuderen, te chatten met je AI Tutor of jezelf te testen.</p>
                     </div>
                 </div>
@@ -230,7 +230,7 @@
                                 
                                 <button id="btnGenerateAiQuiz" onclick="generateAiQuizQuestions()" class="w-full sm:w-auto px-6 py-3 bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold rounded-xl border border-violet-200 transition-all duration-200 inline-flex items-center justify-center space-x-2 text-sm">
                                     <i class="fa-solid fa-wand-magic-sparkles text-violet-600"></i>
-                                    <span>Ã¢ÂÂ¨ Genereer Extra Quizvragen met AI</span>
+                                    <span>✨ Genereer Extra Quizvragen met AI</span>
                                 </button>
                             </div>
                             <div id="aiQuizLoadingIndicator" class="hidden text-sm text-indigo-600 mt-2 animate-pulse font-medium">
@@ -295,7 +295,7 @@
                                 </button>
                                 <button id="btnGenerateAiQuizEnd" onclick="generateAiQuizQuestions()" class="w-full sm:w-auto px-5 py-2.5 bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold rounded-xl text-sm transition-all border border-violet-200 flex items-center justify-center space-x-2">
                                     <i class="fa-solid fa-wand-magic-sparkles text-violet-600"></i>
-                                    <span>Ã¢ÂÂ¨ Genereer Meer Oefenvragen</span>
+                                    <span>✨ Genereer Meer Oefenvragen</span>
                                 </button>
                                 <button onclick="switchCourseTab('summary')" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all flex items-center justify-center space-x-2">
                                     <i class="fa-solid fa-arrow-left"></i>
@@ -317,7 +317,7 @@
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-slate-900 text-sm">AI Studie Maatje (Tutor)</h4>
-                                    <p class="text-[10px] text-slate-400">Aangedreven door Gemini 2.5 Ã¢ÂÂ¢ Begrijpt jouw samenvatting</p>
+                                    <p class="text-[10px] text-slate-400">Aangedreven door Gemini 2.5 • Begrijpt jouw samenvatting</p>
                                 </div>
                             </div>
                             <button onclick="clearTutorChat()" class="text-xs text-slate-400 hover:text-rose-500 font-medium transition-colors flex items-center space-x-1">
@@ -522,7 +522,7 @@
                 icon: "fa-solid fa-users",
                 summary: `
                     <h2 class="text-2xl font-bold text-slate-900 mt-2 mb-4">Hoofdstuk 1: Invloed van de Groep</h2>
-                    <p class="mb-4">Sociale psychologie onderzoekt hoe de gedachten, gevoelens en gedragingen van individuen worden beÃÂ¯nvloed door de echte, denkbeeldige of impliciete aanwezigheid van anderen. Een van de belangrijkste concepten is conformisme.</p>
+                    <p class="mb-4">Sociale psychologie onderzoekt hoe de gedachten, gevoelens en gedragingen van individuen worden beïnvloed door de echte, denkbeeldige of impliciete aanwezigheid van anderen. Een van de belangrijkste concepten is conformisme.</p>
 
                     <div class="p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-r-lg mb-6">
                         <p class="font-semibold text-indigo-950 mb-1">Kernbegrip: Conformisme</p>
@@ -618,7 +618,7 @@
                     if (i === 4) {
                         throw new Error("Gemini is momenteel overbelast of onbereikbaar. Probeer het over een moment opnieuw.");
                     }
-                    // ExponentiÃÂ«le backoff: 1s, 2s, 4s, 8s, 16s...
+                    // Exponentiële backoff: 1s, 2s, 4s, 8s, 16s...
                     await new Promise(resolve => setTimeout(resolve, delay));
                     delay *= 2;
                 }
@@ -687,7 +687,7 @@
                     }
 
                     // Toon een vriendelijke alert-achtige feedback in de UI
-                    showAiFeedbackAlert(`Ã¢ÂÂ¨ Succes! Gemini heeft ${parsedResult.questions.length} nieuwe vragen toegevoegd aan deze quiz. Je kunt ze direct spelen!`);
+                    showAiFeedbackAlert(`✨ Succes! Gemini heeft ${parsedResult.questions.length} nieuwe vragen toegevoegd aan deze quiz. Je kunt ze direct spelen!`);
                     
                     // Start de quiz opnieuw op om de nieuwe vragen in te laden
                     startQuiz();
@@ -696,7 +696,7 @@
                 }
             } catch (err) {
                 console.error("Fout bij het genereren van AI-vragen:", err);
-                showAiFeedbackAlert(`Ã¢ÂÂ Fout: ${err.message}`, "bg-rose-50 border-rose-500 text-rose-900");
+                showAiFeedbackAlert(`❌ Fout: ${err.message}`, "bg-rose-50 border-rose-500 text-rose-900");
             } finally {
                 loader.classList.add('hidden');
                 if (startBtn) startBtn.disabled = false;
@@ -735,7 +735,7 @@
                 tutorChats[activeCourse.id] = [
                     {
                         role: "assistant",
-                        text: `Hallo! Ik ben jouw AI Studie Maatje voor het vak <strong>${activeCourse.title}</strong>. Ã°ÂÂ§Â <br><br>Ik ken jouw samenvatting uit mijn hoofd. Stel me gerust al je vragen over deze leerstof! Ik kan ingewikkelde concepten simpeler uitleggen, oefenscenario's bedenken of ezelsbruggetjes verzinnen.`
+                        text: `Hallo! Ik ben jouw AI Studie Maatje voor het vak <strong>${activeCourse.title}</strong>. 🧠<br><br>Ik ken jouw samenvatting uit mijn hoofd. Stel me gerust al je vragen over deze leerstof! Ik kan ingewikkelde concepten simpeler uitleggen, oefenscenario's bedenken of ezelsbruggetjes verzinnen.`
                     }
                 ];
             }
@@ -801,9 +801,9 @@
 
             // Formuleer prompt met de context van de samenvatting
             const systemInstruction = `Je bent de ultieme AI Studie Tutor voor de student. Je gedraagt je uiterst behulpzaam, bemoedigend, geduldig en deskundig.
-            Hieronder vind je de officiÃÂ«le samenvatting van het vak '${activeCourse.title}' waar deze student momenteel aan studeert.
+            Hieronder vind je de officiële samenvatting van het vak '${activeCourse.title}' waar deze student momenteel aan studeert.
             
-            OFFICIÃÂLE SAMENVATTING:
+            OFFICIËLE SAMENVATTING:
             ${activeCourse.summary}
             
             Gebruik de samenvatting als absolute bron om vragen te beantwoorden. Als de student om extra uitleg of voorbeelden vraagt, verzin dan heldere, herkenbare praktijkvoorbeelden. Gebruik uitsluitend Nederlands. Je antwoord mag rijke HTML-opmaak bevatten zoals <strong>, <em>, <code>, en geordende lijsten voor de leesbaarheid. Probeer compacte antwoorden te geven zodat het past in een chatscherm.`;
@@ -826,7 +826,7 @@
             } catch (err) {
                 console.error("AI Tutor fout:", err);
                 typingBubble.remove();
-                const errorMessage = `Ã¢ÂÂ Er is een verbindingsfout opgetreden met de AI Tutor: ${err.message}`;
+                const errorMessage = `❌ Er is een verbindingsfout opgetreden met de AI Tutor: ${err.message}`;
                 appendChatMessageToUI('assistant', errorMessage);
             } finally {
                 btnSend.disabled = false;
@@ -1072,6 +1072,27 @@
         }
 
         function renderDashboard() {
+        const today = new Date().toDateString();
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        const studyDates = new Set(quizHistory.filter(h => h.date).map(h => h.date));
+        let streak = 0;
+        if (studyDates.has(today)) {
+            streak = 1;
+            let checkDate = new Date(Date.now() - 86400000);
+            while (studyDates.has(checkDate.toDateString())) {
+                streak++;
+                checkDate = new Date(checkDate.getTime() - 86400000);
+            }
+        } else if (studyDates.has(yesterday)) {
+            let checkDate = new Date(Date.now() - 86400000);
+            while (studyDates.has(checkDate.toDateString())) {
+                streak++;
+                checkDate = new Date(checkDate.getTime() - 86400000);
+            }
+        }
+        const streakEl = document.getElementById('streakDisplay');
+        if (streakEl) streakEl.textContent = streak + ' Dag' + (streak !== 1 ? 'en' : '') + ' Streak!';
+
             const totalCount = coursesDatabase.length;
             document.getElementById('totalCoursesCount').innerText = totalCount;
             document.getElementById('coursesBadge').innerText = totalCount;
@@ -1158,6 +1179,7 @@
         }
 
         function selectCourse(courseId) {
+            if (window.innerWidth < 1024 && typeof closeSidebar !== "undefined") closeSidebar();
             const course = coursesDatabase.find(c => c.id === courseId);
             if (!course) return;
 
@@ -1411,7 +1433,8 @@
                 courseId: activeCourse.id,
                 score: score,
                 total: quizData.length,
-                scorePercentage: percentage
+                scorePercentage: percentage,
+                date: new Date().toDateString()
             });
             
             saveQuizHistoryToLocalStorage();
@@ -1487,7 +1510,7 @@
             } catch (error) {
                 console.error(error);
                 document.getElementById('jsonPasteArea').className = "w-full p-4 border border-rose-500 rounded-2xl font-mono text-xs focus:ring-2 focus:ring-rose-500 bg-rose-50 text-slate-700";
-                document.getElementById('jsonPasteArea').placeholder = `Fout bij parsen: ${error.message}\nProbeer opnieuw de volledige code van Claude te kopiÃÂ«ren.`;
+                document.getElementById('jsonPasteArea').placeholder = `Fout bij parsen: ${error.message}\nProbeer opnieuw de volledige code van Claude te kopiëren.`;
             }
         }
 
@@ -1536,6 +1559,38 @@
         loadFromLocalStorage();
         showDashboard();
         initializeFirebase();
+    
+        // Mobile sidebar toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            sidebar.classList.add('translate-x-0');
+            sidebarOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            sidebar.classList.remove('translate-x-0');
+            sidebarOverlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', function() {
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    openSidebar();
+                } else {
+                    closeSidebar();
+                }
+            });
+        }
+
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
     </script>
-</body>
 </html>
