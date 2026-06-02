@@ -1,21 +1,18 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mijn Studie Portaal</title>
-    <!-- Tailwind CSS voor modern responsive styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter voor strakke en rustige typografie -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome voor iconen -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        function connectWithCode() {
+            if (!isFirebaseAvailable) {
+                showAiFeedbackAlert('Firebase is niet beschikbaar. Controleer je internetverbinding.', 'bg-rose-50 border-rose-500 text-rose-900');
+                return;
+            }
+            const codeInput = document.getElementById('syncCodeInput').value.trim().toLowerCase();
+            if (!codeInput) return;
+
+            currentSyncCode = codeInput;
+            localStorage.setItem('studieportaal_sync_code', codeInput);
+
+            // Koppel de realtime sync (ontvang data van de cloud)
+            setupCloudSyncListener(codeInput);
+            updateSyncUI(true);
+            closeSyncModal();
         }
         /* Custom scrollbar voor de sidebar, chat en content */
         ::-webkit-scrollbar {
@@ -124,7 +121,7 @@
         </header>
 
         <!-- Content Container -->
-        <div class="flex-1 overflow-y-auto p-4 md:p-8" id="mainScrollArea">
+        <div class="flex-1 overflow-y-auto p-4 pb-24 md:p-8 md:pb-8" id="mainScrollArea">
             
             <!-- VIEW 1: DASHBOARD -->
             <div id="dashboardView" class="space-y-8 max-w-5xl mx-auto">
@@ -495,8 +492,7 @@
     <script type="module">
         // 1. IMPORT (Zorg dat deze versienummers overal gelijk zijn, bijv. 12.14.0)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
 
     // 2. JOUW FIREBASE CONFIG (Plak hier je gegevens uit de screenshot)
     const firebaseConfig = {
@@ -845,26 +841,18 @@
         async function initializeFirebase() {
             try {
                 const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
                 db = getFirestore(app);
                 isFirebaseAvailable = true;
-
-                // Rule 3: Auth Before Queries
-                await signInAnonymously(auth);
-                console.log("Firebase is succesvol anoniem ingelogd.");
-                
-                // Activeer cloud sync als er al een sleutel lokaal bewaard is
-                const savedCode = localStorage.getItem('studieportaal_sync_code');
-                if (savedCode) {
-                    currentSyncCode = savedCode;
-                    setupCloudSyncListener(savedCode);
+                if (currentSyncCode) {
+                    setupCloudSyncListener(currentSyncCode);
                 }
+                updateSyncUI(isFirebaseAvailable);
             } catch (error) {
                 console.warn("Firebase kon niet worden geladen. Offline fallback actief.", error);
+                isFirebaseAvailable = false;
+                updateSyncUI(false);
             }
         }
-
-        // LOCAL STORAGE SYSTEM (Fallback & Cache)
         function loadFromLocalStorage() {
             const savedCourses = localStorage.getItem('studieportaal_courses');
             if (savedCourses) {
@@ -900,46 +888,44 @@
         async function setupCloudSyncListener(code) {
             if (!isFirebaseAvailable || !db) return;
 
-            // Schoon eventuele bestaande listener op
+            // Stop eventuele bestaande listener
             if (syncUnsubscribe) {
                 syncUnsubscribe();
+                syncUnsubscribe = null;
             }
 
-            // Path volgens Rule 1: /artifacts/{appId}/public/data/{collectionName}/{documentId}
-            const syncDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'portals', code);
+            const syncDocRef = doc(db, 'portals', code);
+            currentSyncCode = code;
 
-            updateSyncUI(true);
+            try {
+                // Check of document al bestaat
+                const snap = await getDoc(syncDocRef);
+                if (!snap.exists()) {
+                    // Nieuw document: upload lokale data naar cloud
+                    await pushDataToCloud();
+                }
+            } catch(e) {
+                console.warn('Kon bestaande data niet controleren:', e);
+            }
 
+            // Realtime listener voor wijzigingen
             syncUnsubscribe = onSnapshot(syncDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.courses) {
+                    if (data.courses && Array.isArray(data.courses)) {
                         coursesDatabase = data.courses;
-                        saveToLocalStorage();
                     }
-                    if (data.history) {
+                    if (data.history && Array.isArray(data.history)) {
                         quizHistory = data.history;
-                        saveQuizHistoryToLocalStorage();
                     }
-                    // Refresh UI
+                    saveToLocalStorage();
+                    saveQuizHistoryToLocalStorage();
                     loadCoursesList();
                     renderDashboard();
-                    if (activeCourse) {
-                        // Update actieve weergave als er op afstand iets verandert
-                        const updatedCourse = coursesDatabase.find(c => c.id === activeCourse.id);
-                        if (updatedCourse) {
-                            activeCourse = updatedCourse;
-                            document.getElementById('courseSummaryTab').innerHTML = activeCourse.summary;
-                        } else {
-                            showDashboard();
-                        }
-                    }
-                } else {
-                    // Document bestaat nog niet op cloud (eerste keer aanmaken)
-                    pushDataToCloud();
+                    updateSyncUI(true);
                 }
             }, (error) => {
-                console.error("Fout bij cloud synchronisatie:", error);
+                console.warn('Sync listener fout:', error);
                 updateSyncUI(false);
             });
         }
@@ -947,7 +933,7 @@
         // PUSH DATA NAAR CLOUD
         async function pushDataToCloud() {
             if (!isFirebaseAvailable || !db || !currentSyncCode) return;
-            const syncDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'portals', currentSyncCode);
+            const syncDocRef = doc(db, 'portals', currentSyncCode);
             try {
                 await setDoc(syncDocRef, {
                     courses: coursesDatabase,
@@ -983,10 +969,19 @@
 
         // CLOUD ACTIONS
         function generateSyncCode() {
-            const randomId = 'studie-' + Math.random().toString(36).substring(2, 8);
-            currentSyncCode = randomId;
-            localStorage.setItem('studieportaal_sync_code', randomId);
-            setupCloudSyncListener(randomId);
+            if (!isFirebaseAvailable) {
+                showAiFeedbackAlert('Firebase is niet beschikbaar. Controleer je internetverbinding.', 'bg-rose-50 border-rose-500 text-rose-900');
+                return;
+            }
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let code = 'studie-';
+            for (let k = 0; k < 6; k++) {
+                code += chars[Math.floor(Math.random() * chars.length)];
+            }
+            currentSyncCode = code;
+            localStorage.setItem('studieportaal_sync_code', code);
+            setupCloudSyncListener(code);
+            updateSyncUI(true);
         }
 
         async function connectWithCode() {
