@@ -9,7 +9,7 @@
     <!-- Google Fonts: Inter voor strakke en rustige typografie -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome voor iconen -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -59,7 +59,7 @@
                 </div>
                 <div>
                     <h1 class="font-extrabold text-slate-900 tracking-tight leading-none">StudiePortaal</h1>
-                    <span class="text-xs text-indigo-600 font-medium tracking-wider uppercase">My Hub v2.5 ✨</span>
+                    <span class="text-xs text-indigo-600 font-medium tracking-wider uppercase">My Hub v2.5 â¨</span>
                 </div>
             </div>
             <!-- Sluitknop voor mobiel -->
@@ -134,7 +134,7 @@
                     <div class="absolute right-10 -top-10 w-32 h-32 bg-violet-600/20 rounded-full blur-2xl"></div>
                     <div class="relative z-10 space-y-3 max-w-lg">
                         <span class="bg-indigo-500/30 text-indigo-200 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase">Studie Dashboard</span>
-                        <h3 class="text-3xl font-extrabold tracking-tight md:text-4xl">Maak studeren interactief en efficiënt.</h3>
+                        <h3 class="text-3xl font-extrabold tracking-tight md:text-4xl">Maak studeren interactief en efficiÃ«nt.</h3>
                         <p class="text-indigo-200 text-sm md:text-base leading-relaxed">Kies een vak uit het linkermenu om direct je samenvattingen te lezen, belangrijke termen te bestuderen, te chatten met je AI Tutor of jezelf te testen.</p>
                     </div>
                 </div>
@@ -230,7 +230,7 @@
                                 
                                 <button id="btnGenerateAiQuiz" onclick="generateAiQuizQuestions()" class="w-full sm:w-auto px-6 py-3 bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold rounded-xl border border-violet-200 transition-all duration-200 inline-flex items-center justify-center space-x-2 text-sm">
                                     <i class="fa-solid fa-wand-magic-sparkles text-violet-600"></i>
-                                    <span>✨ Genereer Extra Quizvragen met AI</span>
+                                    <span>â¨ Genereer Extra Quizvragen met AI</span>
                                 </button>
                             </div>
                             <div id="aiQuizLoadingIndicator" class="hidden text-sm text-indigo-600 mt-2 animate-pulse font-medium">
@@ -295,7 +295,7 @@
                                 </button>
                                 <button id="btnGenerateAiQuizEnd" onclick="generateAiQuizQuestions()" class="w-full sm:w-auto px-5 py-2.5 bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold rounded-xl text-sm transition-all border border-violet-200 flex items-center justify-center space-x-2">
                                     <i class="fa-solid fa-wand-magic-sparkles text-violet-600"></i>
-                                    <span>✨ Genereer Meer Oefenvragen</span>
+                                    <span>â¨ Genereer Meer Oefenvragen</span>
                                 </button>
                                 <button onclick="switchCourseTab('summary')" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all flex items-center justify-center space-x-2">
                                     <i class="fa-solid fa-arrow-left"></i>
@@ -317,7 +317,7 @@
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-slate-900 text-sm">AI Studie Maatje (Tutor)</h4>
-                                    <p class="text-[10px] text-slate-400">Aangedreven door Gemini 2.5 • Begrijpt jouw samenvatting</p>
+                                    <p class="text-[10px] text-slate-400">Aangedreven door Gemini 2.5 â¢ Begrijpt jouw samenvatting</p>
                                 </div>
                             </div>
                             <button onclick="clearTutorChat()" class="text-xs text-slate-400 hover:text-rose-500 font-medium transition-colors flex items-center space-x-1">
@@ -494,8 +494,9 @@
     <!-- FIREBASE & APPLICATIE SCRIPT (Module style) -->
     <script type="module">
         // 1. IMPORT (Zorg dat deze versienummers overal gelijk zijn, bijv. 12.14.0)
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
+    import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
 
     // 2. JOUW FIREBASE CONFIG (Plak hier je gegevens uit de screenshot)
     const firebaseConfig = {
@@ -509,6 +510,7 @@
 
     // 3. INITIALISEER
     const app = initializeApp(firebaseConfig);
+    const appId = firebaseConfig.appId;
     const db = getFirestore(app);
 
         // Standaard database van vakken
@@ -520,7 +522,7 @@
                 icon: "fa-solid fa-users",
                 summary: `
                     <h2 class="text-2xl font-bold text-slate-900 mt-2 mb-4">Hoofdstuk 1: Invloed van de Groep</h2>
-                    <p class="mb-4">Sociale psychologie onderzoekt hoe de gedachten, gevoelens en gedragingen van individuen worden beïnvloed door de echte, denkbeeldige of impliciete aanwezigheid van anderen. Een van de belangrijkste concepten is conformisme.</p>
+                    <p class="mb-4">Sociale psychologie onderzoekt hoe de gedachten, gevoelens en gedragingen van individuen worden beÃ¯nvloed door de echte, denkbeeldige of impliciete aanwezigheid van anderen. Een van de belangrijkste concepten is conformisme.</p>
 
                     <div class="p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-r-lg mb-6">
                         <p class="font-semibold text-indigo-950 mb-1">Kernbegrip: Conformisme</p>
@@ -574,8 +576,6 @@
         let courseIdToDelete = null;
 
         // CLOUD SYNCHRONISATIE VARIABLES
-        let db = null;
-        let auth = null;
         let isFirebaseAvailable = false;
         let currentSyncCode = null;
         let syncUnsubscribe = null;
@@ -618,7 +618,7 @@
                     if (i === 4) {
                         throw new Error("Gemini is momenteel overbelast of onbereikbaar. Probeer het over een moment opnieuw.");
                     }
-                    // Exponentiële backoff: 1s, 2s, 4s, 8s, 16s...
+                    // ExponentiÃ«le backoff: 1s, 2s, 4s, 8s, 16s...
                     await new Promise(resolve => setTimeout(resolve, delay));
                     delay *= 2;
                 }
@@ -687,7 +687,7 @@
                     }
 
                     // Toon een vriendelijke alert-achtige feedback in de UI
-                    showAiFeedbackAlert(`✨ Succes! Gemini heeft ${parsedResult.questions.length} nieuwe vragen toegevoegd aan deze quiz. Je kunt ze direct spelen!`);
+                    showAiFeedbackAlert(`â¨ Succes! Gemini heeft ${parsedResult.questions.length} nieuwe vragen toegevoegd aan deze quiz. Je kunt ze direct spelen!`);
                     
                     // Start de quiz opnieuw op om de nieuwe vragen in te laden
                     startQuiz();
@@ -696,7 +696,7 @@
                 }
             } catch (err) {
                 console.error("Fout bij het genereren van AI-vragen:", err);
-                showAiFeedbackAlert(`❌ Fout: ${err.message}`, "bg-rose-50 border-rose-500 text-rose-900");
+                showAiFeedbackAlert(`â Fout: ${err.message}`, "bg-rose-50 border-rose-500 text-rose-900");
             } finally {
                 loader.classList.add('hidden');
                 if (startBtn) startBtn.disabled = false;
@@ -735,7 +735,7 @@
                 tutorChats[activeCourse.id] = [
                     {
                         role: "assistant",
-                        text: `Hallo! Ik ben jouw AI Studie Maatje voor het vak <strong>${activeCourse.title}</strong>. 🧠<br><br>Ik ken jouw samenvatting uit mijn hoofd. Stel me gerust al je vragen over deze leerstof! Ik kan ingewikkelde concepten simpeler uitleggen, oefenscenario's bedenken of ezelsbruggetjes verzinnen.`
+                        text: `Hallo! Ik ben jouw AI Studie Maatje voor het vak <strong>${activeCourse.title}</strong>. ð§ <br><br>Ik ken jouw samenvatting uit mijn hoofd. Stel me gerust al je vragen over deze leerstof! Ik kan ingewikkelde concepten simpeler uitleggen, oefenscenario's bedenken of ezelsbruggetjes verzinnen.`
                     }
                 ];
             }
@@ -801,9 +801,9 @@
 
             // Formuleer prompt met de context van de samenvatting
             const systemInstruction = `Je bent de ultieme AI Studie Tutor voor de student. Je gedraagt je uiterst behulpzaam, bemoedigend, geduldig en deskundig.
-            Hieronder vind je de officiële samenvatting van het vak '${activeCourse.title}' waar deze student momenteel aan studeert.
+            Hieronder vind je de officiÃ«le samenvatting van het vak '${activeCourse.title}' waar deze student momenteel aan studeert.
             
-            OFFICIËLE SAMENVATTING:
+            OFFICIÃLE SAMENVATTING:
             ${activeCourse.summary}
             
             Gebruik de samenvatting als absolute bron om vragen te beantwoorden. Als de student om extra uitleg of voorbeelden vraagt, verzin dan heldere, herkenbare praktijkvoorbeelden. Gebruik uitsluitend Nederlands. Je antwoord mag rijke HTML-opmaak bevatten zoals <strong>, <em>, <code>, en geordende lijsten voor de leesbaarheid. Probeer compacte antwoorden te geven zodat het past in een chatscherm.`;
@@ -826,7 +826,7 @@
             } catch (err) {
                 console.error("AI Tutor fout:", err);
                 typingBubble.remove();
-                const errorMessage = `❌ Er is een verbindingsfout opgetreden met de AI Tutor: ${err.message}`;
+                const errorMessage = `â Er is een verbindingsfout opgetreden met de AI Tutor: ${err.message}`;
                 appendChatMessageToUI('assistant', errorMessage);
             } finally {
                 btnSend.disabled = false;
@@ -1487,7 +1487,7 @@
             } catch (error) {
                 console.error(error);
                 document.getElementById('jsonPasteArea').className = "w-full p-4 border border-rose-500 rounded-2xl font-mono text-xs focus:ring-2 focus:ring-rose-500 bg-rose-50 text-slate-700";
-                document.getElementById('jsonPasteArea').placeholder = `Fout bij parsen: ${error.message}\nProbeer opnieuw de volledige code van Claude te kopiëren.`;
+                document.getElementById('jsonPasteArea').placeholder = `Fout bij parsen: ${error.message}\nProbeer opnieuw de volledige code van Claude te kopiÃ«ren.`;
             }
         }
 
