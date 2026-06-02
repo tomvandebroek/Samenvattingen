@@ -1,18 +1,21 @@
-        function connectWithCode() {
-            if (!isFirebaseAvailable) {
-                showAiFeedbackAlert('Firebase is niet beschikbaar. Controleer je internetverbinding.', 'bg-rose-50 border-rose-500 text-rose-900');
-                return;
-            }
-            const codeInput = document.getElementById('syncCodeInput').value.trim().toLowerCase();
-            if (!codeInput) return;
-
-            currentSyncCode = codeInput;
-            localStorage.setItem('studieportaal_sync_code', codeInput);
-
-            // Koppel de realtime sync (ontvang data van de cloud)
-            setupCloudSyncListener(codeInput);
-            updateSyncUI(true);
-            closeSyncModal();
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mijn Studie Portaal</title>
+    <!-- Tailwind CSS voor modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter voor strakke en rustige typografie -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome voor iconen -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
         }
         /* Custom scrollbar voor de sidebar, chat en content */
         ::-webkit-scrollbar {
@@ -843,16 +846,16 @@
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 isFirebaseAvailable = true;
-                if (currentSyncCode) {
-                    setupCloudSyncListener(currentSyncCode);
-                }
+                if (currentSyncCode) { setupCloudSyncListener(currentSyncCode); }
                 updateSyncUI(isFirebaseAvailable);
             } catch (error) {
-                console.warn("Firebase kon niet worden geladen. Offline fallback actief.", error);
+                console.warn("Firebase kon niet worden geladen.", error);
                 isFirebaseAvailable = false;
                 updateSyncUI(false);
             }
         }
+
+        // LOCAL STORAGE SYSTEM (Fallback & Cache)
         function loadFromLocalStorage() {
             const savedCourses = localStorage.getItem('studieportaal_courses');
             if (savedCourses) {
@@ -887,47 +890,25 @@
         // REALTIME CLOUD SYNC LISTENERS
         async function setupCloudSyncListener(code) {
             if (!isFirebaseAvailable || !db) return;
-
-            // Stop eventuele bestaande listener
-            if (syncUnsubscribe) {
-                syncUnsubscribe();
-                syncUnsubscribe = null;
-            }
-
+            if (syncUnsubscribe) { syncUnsubscribe(); syncUnsubscribe = null; }
             const syncDocRef = doc(db, 'portals', code);
             currentSyncCode = code;
-
             try {
-                // Check of document al bestaat
                 const snap = await getDoc(syncDocRef);
-                if (!snap.exists()) {
-                    // Nieuw document: upload lokale data naar cloud
-                    await pushDataToCloud();
-                }
-            } catch(e) {
-                console.warn('Kon bestaande data niet controleren:', e);
-            }
-
-            // Realtime listener voor wijzigingen
+                if (!snap.exists()) { await pushDataToCloud(); }
+            } catch(e) { console.warn('Check data mislukt:', e); }
             syncUnsubscribe = onSnapshot(syncDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.courses && Array.isArray(data.courses)) {
-                        coursesDatabase = data.courses;
-                    }
-                    if (data.history && Array.isArray(data.history)) {
-                        quizHistory = data.history;
-                    }
+                    if (data.courses && Array.isArray(data.courses)) { coursesDatabase = data.courses; }
+                    if (data.history && Array.isArray(data.history)) { quizHistory = data.history; }
                     saveToLocalStorage();
                     saveQuizHistoryToLocalStorage();
                     loadCoursesList();
                     renderDashboard();
                     updateSyncUI(true);
                 }
-            }, (error) => {
-                console.warn('Sync listener fout:', error);
-                updateSyncUI(false);
-            });
+            }, (error) => { console.warn('Sync listener fout:', error); updateSyncUI(false); });
         }
 
         // PUSH DATA NAAR CLOUD
@@ -970,14 +951,12 @@
         // CLOUD ACTIONS
         function generateSyncCode() {
             if (!isFirebaseAvailable) {
-                showAiFeedbackAlert('Firebase is niet beschikbaar. Controleer je internetverbinding.', 'bg-rose-50 border-rose-500 text-rose-900');
+                showAiFeedbackAlert('Firebase niet beschikbaar. Controleer je verbinding.', 'bg-rose-50 border-rose-500 text-rose-900');
                 return;
             }
             const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
             let code = 'studie-';
-            for (let k = 0; k < 6; k++) {
-                code += chars[Math.floor(Math.random() * chars.length)];
-            }
+            for (let k = 0; k < 6; k++) { code += chars[Math.floor(Math.random() * chars.length)]; }
             currentSyncCode = code;
             localStorage.setItem('studieportaal_sync_code', code);
             setupCloudSyncListener(code);
@@ -1074,16 +1053,10 @@
         if (studyDates.has(today)) {
             streak = 1;
             let checkDate = new Date(Date.now() - 86400000);
-            while (studyDates.has(checkDate.toDateString())) {
-                streak++;
-                checkDate = new Date(checkDate.getTime() - 86400000);
-            }
+            while (studyDates.has(checkDate.toDateString())) { streak++; checkDate = new Date(checkDate.getTime() - 86400000); }
         } else if (studyDates.has(yesterday)) {
             let checkDate = new Date(Date.now() - 86400000);
-            while (studyDates.has(checkDate.toDateString())) {
-                streak++;
-                checkDate = new Date(checkDate.getTime() - 86400000);
-            }
+            while (studyDates.has(checkDate.toDateString())) { streak++; checkDate = new Date(checkDate.getTime() - 86400000); }
         }
         const streakEl = document.getElementById('streakDisplay');
         if (streakEl) streakEl.textContent = streak + ' Dag' + (streak !== 1 ? 'en' : '') + ' Streak!';
@@ -1555,37 +1528,18 @@
         showDashboard();
         initializeFirebase();
     
-        // Mobile sidebar toggle
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
-
         function openSidebar() {
-            sidebar.classList.remove('-translate-x-full');
-            sidebar.classList.add('translate-x-0');
-            sidebarOverlay.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+            sidebar.classList.remove('-translate-x-full'); sidebar.classList.add('translate-x-0');
+            sidebarOverlay.classList.remove('hidden'); document.body.style.overflow = 'hidden';
         }
-
         function closeSidebar() {
-            sidebar.classList.add('-translate-x-full');
-            sidebar.classList.remove('translate-x-0');
-            sidebarOverlay.classList.add('hidden');
-            document.body.style.overflow = '';
+            sidebar.classList.add('-translate-x-full'); sidebar.classList.remove('translate-x-0');
+            sidebarOverlay.classList.add('hidden'); document.body.style.overflow = '';
         }
-
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', function() {
-                if (sidebar.classList.contains('-translate-x-full')) {
-                    openSidebar();
-                } else {
-                    closeSidebar();
-                }
-            });
-        }
-
-        if (sidebarOverlay) {
-            sidebarOverlay.addEventListener('click', closeSidebar);
-        }
+        if (mobileMenuBtn) { mobileMenuBtn.addEventListener('click', function() { if (sidebar.classList.contains('-translate-x-full')) { openSidebar(); } else { closeSidebar(); } }); }
+        if (sidebarOverlay) { sidebarOverlay.addEventListener('click', closeSidebar); }
     </script>
 </html>
