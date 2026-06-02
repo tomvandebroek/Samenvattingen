@@ -843,6 +843,7 @@
         // INIALISEER FIREBASE CLOUD DB
         async function initializeFirebase() {
             try {
+                currentSyncCode = localStorage.getItem('studieportaal_sync_code') || null;
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 isFirebaseAvailable = true;
