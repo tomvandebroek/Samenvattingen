@@ -3,134 +3,733 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Samenvattingen</title>
+  <title>Mijn Studie Portaal</title>
   <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --soft: #f1f5f9;
+      --indigo: #4f46e5;
+      --indigo-dark: #3730a3;
+      --violet: #7c3aed;
+      --rose: #e11d48;
+      --emerald: #059669;
+      --amber: #d97706;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: #f8fafc; color: #0f172a; }
-    .app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
-    .panel { border-right: 1px solid #e2e8f0; background: #fff; display: flex; flex-direction: column; }
-    .section { padding: 16px; border-bottom: 1px solid #e2e8f0; }
-    h1 { margin: 0 0 4px; font-size: 1.2rem; }
-    p { margin: 0; color: #475569; }
-    .gists { list-style: none; margin: 0; padding: 8px; overflow: auto; flex: 1; }
-    .gists button { width: 100%; text-align: left; border: 1px solid #e2e8f0; background: #fff; border-radius: 10px; padding: 10px; margin-bottom: 8px; cursor: pointer; }
-    .gists button.active { border-color: #2563eb; background: #eff6ff; }
-    .editor { display: flex; flex-direction: column; min-width: 0; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; border-bottom: 1px solid #e2e8f0; background: #fff; align-items: center; }
-    input[type="text"], textarea, input[type="password"] { width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px; font: inherit; background: #fff; color: #0f172a; }
-    textarea { flex: 1; resize: vertical; min-height: 300px; padding: 16px; margin: 16px; width: calc(100% - 32px); }
-    button { border: 1px solid #cbd5e1; background: #fff; border-radius: 10px; padding: 9px 12px; cursor: pointer; font: inherit; }
-    button.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
-    button:disabled { opacity: 0.65; cursor: not-allowed; }
-    .status { margin-left: auto; font-size: 0.92rem; color: #334155; }
-    .status.error { color: #b91c1c; }
-    .status.success { color: #166534; }
-    .token-actions { display: flex; gap: 8px; }
-    .token-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; margin-top: 10px; }
-    dialog { border: 1px solid #cbd5e1; border-radius: 12px; width: min(620px, calc(100vw - 24px)); }
-    dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
-    .muted { font-size: .9rem; color: #64748b; }
-    @media (max-width: 900px) {
-      .app { grid-template-columns: 1fr; }
-      .panel { border-right: 0; border-bottom: 1px solid #e2e8f0; max-height: 45vh; }
-      .status { margin-left: 0; width: 100%; }
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: var(--soft);
+      color: #334155;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(15, 23, 42, .08); }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    button.primary { background: linear-gradient(135deg, var(--indigo), var(--violet)); color: #fff; }
+    button.danger { background: #fff1f2; color: var(--rose); }
+    button.tab { border-radius: 0; background: transparent; color: var(--muted); border-bottom: 2px solid transparent; }
+    button.tab.active { color: var(--indigo); border-bottom-color: var(--indigo); }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--ink);
+      padding: 12px 14px;
+      outline: none;
+    }
+    textarea {
+      min-height: 420px;
+      resize: vertical;
+      font-family: "Cascadia Code", Consolas, monospace;
+      line-height: 1.55;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(79, 70, 229, .14); }
+
+    .app { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: 100vh; }
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      z-index: 2;
+    }
+    .side-head { padding: 24px; border-bottom: 1px solid var(--line); }
+    .logo { display: flex; gap: 12px; align-items: center; }
+    .logo-mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--indigo), var(--violet));
+      box-shadow: 0 12px 24px rgba(79, 70, 229, .28);
+    }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 1.35rem; }
+    .muted { color: var(--muted); font-size: .9rem; line-height: 1.5; }
+    .side-tools { padding: 16px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+    .tool-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sync-card {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 999px; background: var(--amber); }
+    .dot.ok { background: var(--emerald); }
+    .gist-list { list-style: none; margin: 0; padding: 12px; overflow: auto; flex: 1; }
+    .course-btn {
+      width: 100%;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+      border-radius: 16px;
+      background: transparent;
+      padding: 10px 12px;
+      margin-bottom: 4px;
+      color: #334155;
+    }
+    .course-btn.active, .course-btn:hover { background: #eef2ff; color: var(--indigo); box-shadow: none; transform: none; }
+    .course-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: #eef2ff;
+      color: var(--indigo);
+      flex: 0 0 auto;
+      font-weight: 900;
+    }
+    .course-title { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .course-meta { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
+    .main { min-width: 0; display: flex; flex-direction: column; height: 100vh; }
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 24px;
+      background: rgba(255,255,255,.86);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .scroll { flex: 1; overflow: auto; padding: 32px; }
+    .container { max-width: 1080px; margin: 0 auto; }
+    .hidden { display: none !important; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: 34px;
+      color: #fff;
+      background: linear-gradient(135deg, #312e81, #3730a3 48%, #0f172a);
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      bottom: -90px;
+      width: 240px;
+      height: 240px;
+      border-radius: 999px;
+      background: rgba(124, 58, 237, .35);
+      filter: blur(20px);
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 680px; }
+    .hero h2 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; margin: 10px 0 12px; }
+    .hero p { color: #c7d2fe; line-height: 1.7; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #eef2ff;
+      color: var(--indigo);
+      font-size: .75rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .hero .pill { background: rgba(255,255,255,.12); color: #e0e7ff; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 24px; }
+    .course-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 16px; }
+    .card {
+      background: #fff;
+      border: 1px solid rgba(226,232,240,.88);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 1px 2px rgba(15,23,42,.04);
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 8px; }
+    .stat { font-size: 2.2rem; font-weight: 900; color: var(--indigo); margin-top: 12px; }
+    .summary-card {
+      text-align: left;
+      width: 100%;
+      background: #fff;
+      border: 1px solid rgba(226,232,240,.9);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 1px 2px rgba(15,23,42,.04);
+    }
+    .summary-card:hover { background: #f8fafc; }
+    .summary-card h3 { color: #0f172a; margin: 14px 0 8px; font-size: 1.15rem; }
+    .summary-card .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      color: var(--indigo);
+      background: #eef2ff;
+      font-weight: 900;
+      font-size: 1.15rem;
+    }
+
+    .course-hero { display: grid; gap: 16px; margin-bottom: 22px; }
+    .course-hero h2 { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.1; letter-spacing: -.02em; }
+    .course-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+    .content-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: clamp(20px, 4vw, 34px);
+      box-shadow: var(--shadow);
+    }
+    .reader {
+      color: #334155;
+      line-height: 1.75;
+      font-size: 1rem;
+    }
+    .reader h1, .reader h2, .reader h3 { color: #0f172a; line-height: 1.2; margin: 1.4em 0 .5em; }
+    .reader h1 { font-size: 2rem; }
+    .reader h2 { font-size: 1.55rem; }
+    .reader h3 { font-size: 1.25rem; }
+    .reader h4 { color: #0f172a; margin: .8rem 0 .35rem; }
+    .reader p, .reader ul, .reader ol, .reader pre, .reader table { margin: 0 0 1rem; }
+    .reader ul, .reader ol { padding-left: 1.4rem; }
+    .reader li { margin-bottom: .35rem; }
+    .reader code { background: #eef2ff; color: #3730a3; border-radius: 7px; padding: 2px 6px; }
+    .reader pre {
+      position: relative;
+      overflow: auto;
+      border-radius: 18px;
+      padding: 18px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 16px 30px rgba(15,23,42,.12);
+    }
+    .reader pre code {
+      display: block;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      border-radius: 0;
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: .92rem;
+      line-height: 1.65;
+      white-space: pre;
+    }
+    .reader pre[data-lang]::before {
+      content: attr(data-lang);
+      display: inline-flex;
+      margin-bottom: 12px;
+      border-radius: 999px;
+      padding: 2px 9px;
+      background: rgba(99,102,241,.22);
+      color: #c7d2fe;
+      font-size: .72rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .reader table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 12px; }
+    .reader th, .reader td { border: 1px solid var(--line); padding: 10px; text-align: left; }
+    .reader blockquote { margin: 0 0 1rem; padding: 12px 16px; border-left: 4px solid var(--indigo); background: #eef2ff; border-radius: 0 14px 14px 0; }
+    .reader .p-4 { padding: 1rem; }
+    .reader .p-6 { padding: 1.5rem; }
+    .reader .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+    .reader .my-6 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+    .reader .mb-1 { margin-bottom: .25rem; }
+    .reader .mb-2 { margin-bottom: .5rem; }
+    .reader .mb-4 { margin-bottom: 1rem; }
+    .reader .mb-6 { margin-bottom: 1.5rem; }
+    .reader .mt-0\.5 { margin-top: .125rem; }
+    .reader .mt-1 { margin-top: .25rem; }
+    .reader .mt-2 { margin-top: .5rem; }
+    .reader .mt-4 { margin-top: 1rem; }
+    .reader .mt-8 { margin-top: 2rem; }
+    .reader .ml-2 { margin-left: .5rem; }
+    .reader .pl-4 { padding-left: 1rem; }
+    .reader .pl-5 { padding-left: 1.25rem; }
+    .reader .pr-4 { padding-right: 1rem; }
+    .reader .px-3 { padding-left: .75rem; padding-right: .75rem; }
+    .reader .py-1 { padding-top: .25rem; padding-bottom: .25rem; }
+    .reader .py-2 { padding-top: .5rem; padding-bottom: .5rem; }
+    .reader .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: .5rem; }
+    .reader .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+    .reader .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem; }
+    .reader .space-x-2 > :not([hidden]) ~ :not([hidden]) { margin-left: .5rem; }
+    .reader .text-sm { font-size: .875rem; }
+    .reader .text-xs { font-size: .75rem; line-height: 1rem; }
+    .reader .text-lg { font-size: 1.125rem; }
+    .reader .text-xl { font-size: 1.25rem; }
+    .reader .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .reader .font-semibold { font-weight: 700; }
+    .reader .font-bold { font-weight: 800; }
+    .reader .font-extrabold { font-weight: 900; }
+    .reader .rounded-lg { border-radius: .5rem; }
+    .reader .rounded-xl { border-radius: .75rem; }
+    .reader .rounded-2xl { border-radius: 1rem; }
+    .reader .rounded-full { border-radius: 999px; }
+    .reader .rounded-r-lg { border-radius: 0 .5rem .5rem 0; }
+    .reader .border { border: 1px solid var(--line); }
+    .reader .border-l-4 { border-left: 4px solid var(--indigo); }
+    .reader .border-l-2 { border-left: 2px solid var(--line); }
+    .reader .border-4 { border-width: 4px; border-style: solid; }
+    .reader .border-indigo-500 { border-color: var(--indigo); }
+    .reader .border-slate-200 { border-color: var(--line); }
+    .reader .border-white { border-color: #fff; }
+    .reader .bg-indigo-50 { background: #eef2ff; }
+    .reader .bg-indigo-600 { background: #4f46e5; }
+    .reader .bg-slate-50 { background: #f8fafc; }
+    .reader .bg-slate-900 { background: #0f172a; }
+    .reader .bg-white { background: #fff; }
+    .reader .bg-violet-500 { background: #8b5cf6; }
+    .reader .bg-emerald-50 { background: #ecfdf5; }
+    .reader .bg-amber-50 { background: #fffbeb; }
+    .reader .bg-rose-50 { background: #fff1f2; }
+    .reader .shadow-sm { box-shadow: 0 1px 2px rgba(15,23,42,.06); }
+    .reader .shadow-md { box-shadow: 0 8px 18px rgba(15,23,42,.08); }
+    .reader .text-slate-900 { color: #0f172a; }
+    .reader .text-slate-800 { color: #1e293b; }
+    .reader .text-slate-700 { color: #334155; }
+    .reader .text-slate-600 { color: #475569; }
+    .reader .text-slate-500 { color: #64748b; }
+    .reader .text-slate-300 { color: #cbd5e1; }
+    .reader .text-white { color: #fff; }
+    .reader .text-indigo-500 { color: #6366f1; }
+    .reader .text-indigo-600 { color: #4f46e5; }
+    .reader .text-indigo-950 { color: #1e1b4b; }
+    .reader .text-indigo-900 { color: #312e81; }
+    .reader .text-violet-600 { color: #7c3aed; }
+    .reader .text-emerald-900 { color: #064e3b; }
+    .reader .text-amber-900 { color: #78350f; }
+    .reader .text-rose-900 { color: #881337; }
+    .reader .relative { position: relative; }
+    .reader .absolute { position: absolute; }
+    .reader .top-1\.5 { top: .375rem; }
+    .reader .-left-\[25px\] { left: -25px; }
+    .reader .w-4 { width: 1rem; }
+    .reader .h-4 { height: 1rem; }
+    .reader .flex { display: flex; }
+    .reader .items-center { align-items: center; }
+    .reader .justify-between { justify-content: space-between; }
+    .reader .font-mono { font-family: "Cascadia Code", Consolas, monospace; }
+    .reader .overflow-x-auto { overflow-x: auto; }
+    .reader .list-disc { list-style: disc; }
+    .reader .grid { display: grid; gap: 1rem; }
+    .reader .grid-cols-1 { grid-template-columns: 1fr; }
+    .reader i[class*="fa-"] {
+      width: 1.15em;
+      height: 1.15em;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+    }
+    .reader i[class*="fa-"]::before {
+      content: "";
+      width: .62em;
+      height: .62em;
+      border-radius: 999px;
+      background: currentColor;
+      display: block;
+    }
+    @media (min-width: 768px) {
+      .reader .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .reader .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    mark { background: #fde68a; color: #111827; border-radius: 5px; padding: 0 3px; }
+
+    .editor-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+    .form-grid { display: grid; gap: 12px; }
+    .preview-box { max-height: 640px; overflow: auto; }
+    .status { color: var(--muted); font-size: .9rem; }
+    .status.error { color: var(--rose); }
+    .status.success { color: var(--emerald); }
+
+    .quiz-list, .chat-log { display: grid; gap: 14px; }
+    .quiz-card { border: 1px solid var(--line); border-radius: 20px; padding: 18px; background: #fff; }
+    .quiz-options { display: grid; gap: 8px; margin-top: 14px; }
+    .quiz-options button { text-align: left; background: #fff; border: 2px solid var(--line); }
+    .quiz-options button.correct { border-color: var(--emerald); background: #ecfdf5; color: #065f46; }
+    .quiz-options button.wrong { border-color: var(--rose); background: #fff1f2; color: #9f1239; }
+    .msg { max-width: 84%; border-radius: 20px; padding: 12px 14px; background: #f1f5f9; color: #334155; line-height: 1.55; }
+    .msg.user { margin-left: auto; background: var(--indigo); color: #fff; }
+    .chat-form { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 16px; }
+    .search-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 16px; }
+
+    dialog {
+      width: min(680px, calc(100vw - 24px));
+      border: 0;
+      border-radius: 24px;
+      padding: 0;
+      box-shadow: var(--shadow);
+    }
+    dialog::backdrop { background: rgba(15, 23, 42, .55); backdrop-filter: blur(4px); }
+    .dialog-body { padding: 24px; display: grid; gap: 14px; }
+    .token-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; }
+
+    @media (max-width: 980px) {
+      body { overflow: auto; height: auto; }
+      .app { grid-template-columns: 1fr; height: auto; min-height: 100vh; }
+      .sidebar { position: static; max-height: 48vh; }
+      .main { height: auto; min-height: 70vh; }
+      .grid, .course-grid, .editor-grid { grid-template-columns: 1fr; }
+      .scroll { padding: 20px; }
+    }
+    @media (max-width: 640px) {
+      .topbar { height: auto; padding: 14px; align-items: flex-start; flex-direction: column; }
+      .tool-row, .search-row, .chat-form, .token-row { grid-template-columns: 1fr; }
+      .hero { padding: 24px; border-radius: 22px; }
+      .course-actions button { width: 100%; }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <aside class="panel" aria-label="Opgeslagen samenvattingen">
-      <div class="section">
-        <h1>Samenvattingen</h1>
-        <p>Gists met marker <code>[Samenvattingen]</code>.</p>
+    <aside class="sidebar">
+      <div class="side-head">
+        <div class="logo">
+          <div class="logo-mark">S</div>
+          <div>
+            <h1>Studie Portaal</h1>
+            <p class="muted">Samenvattingen via GitHub Gist</p>
+          </div>
+        </div>
       </div>
-      <div class="section token-actions">
-        <button id="manageTokenBtn">Token beheren</button>
-        <button id="reloadBtn">Herladen</button>
+
+      <div class="side-tools">
+        <div class="sync-card">
+          <span id="syncDot" class="dot"></span>
+          <div>
+            <strong id="syncText">Token niet ingesteld</strong>
+            <p class="muted">Prive Gists met marker <code>[Samenvattingen]</code></p>
+          </div>
+        </div>
+        <input id="gistSearch" type="search" placeholder="Zoek samenvatting..." />
+        <div class="tool-row">
+          <button id="newBtn" class="primary" type="button">Nieuwe SV</button>
+          <button id="reloadBtn" type="button">Herladen</button>
+        </div>
+        <div class="tool-row">
+          <button id="manageTokenBtn" type="button">GitHub token</button>
+          <button id="manageGeminiBtn" type="button">Gemini key</button>
+        </div>
       </div>
-      <ul id="gistList" class="gists"></ul>
+
+      <ul id="gistList" class="gist-list"></ul>
     </aside>
 
-    <main class="editor">
-      <div class="toolbar">
-        <input id="summaryTitle" type="text" placeholder="Titel van samenvatting" aria-label="Titel van samenvatting" />
-        <button id="newBtn">Nieuw</button>
-        <button id="saveBtn" class="primary">Opslaan</button>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2 id="mainHeaderTitle">Dashboard</h2>
+          <p id="mainHeaderSubtitle" class="muted">Kies een samenvatting of voeg er een toe.</p>
+        </div>
         <span id="status" class="status" role="status" aria-live="polite">Klaar.</span>
+      </header>
+
+      <div class="scroll">
+        <section id="dashboardView" class="container">
+          <div class="hero">
+            <div class="hero-content">
+              <span class="pill">Studie overzicht</span>
+              <h2>Leer sneller met je eigen samenvattingen.</h2>
+              <p>Open een samenvatting als nette leesweergave, zoek termen, maak meerkeuzevragen en stel vragen aan Gemini.</p>
+              <div class="course-actions" style="margin-top:22px;">
+                <button id="heroNewBtn" class="primary" type="button">Samenvatting toevoegen</button>
+              </div>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="card">
+              <h3>Samenvattingen</h3>
+              <p class="muted">Aantal geladen Gists.</p>
+              <div id="summaryCount" class="stat">0</div>
+            </article>
+            <article class="card">
+              <h3>Formaten</h3>
+              <p class="muted">Markdown, tekst, JSON en JS objecten.</p>
+              <div class="stat">4</div>
+            </article>
+            <article class="card">
+              <h3>AI hulp</h3>
+              <p class="muted">Quiz en tutor via Gemini.</p>
+              <div class="stat">AI</div>
+            </article>
+          </div>
+          <div style="margin-top:34px;">
+            <h2 style="font-size:1.35rem;margin-bottom:4px;">Recente samenvattingen</h2>
+            <p class="muted">Open direct vanuit het dashboard.</p>
+            <div id="dashboardCoursesGrid" class="course-grid"></div>
+          </div>
+        </section>
+
+        <section id="readerView" class="container hidden">
+          <div class="course-hero">
+            <span id="courseFormat" class="pill">Markdown</span>
+            <h2 id="courseTitle">Ongetiteld</h2>
+            <p id="courseMeta" class="muted"></p>
+            <div class="course-actions">
+              <button id="backDashboardBtn" type="button">Dashboard</button>
+              <button id="editBtn" type="button">Bewerken</button>
+              <button id="readerNewBtn" class="primary" type="button">Nieuwe SV</button>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button id="tabSummaryBtn" class="tab active" type="button">Samenvatting</button>
+            <button id="tabQuizBtn" class="tab" type="button">Quiz</button>
+            <button id="tabTutorBtn" class="tab" type="button">AI tutor</button>
+          </div>
+
+          <div id="summaryTab" class="content-card">
+            <div class="search-row">
+              <input id="contentSearch" type="search" placeholder="Zoek termen in deze samenvatting..." />
+              <button id="prevMatchBtn" type="button">Vorige</button>
+              <button id="nextMatchBtn" type="button">Volgende</button>
+            </div>
+            <p id="matchInfo" class="muted" style="margin-bottom:14px;">0 hits</p>
+            <div id="renderedContent" class="reader"></div>
+          </div>
+
+          <div id="quizTab" class="content-card hidden">
+            <div class="course-actions" style="margin-bottom:18px;">
+              <button id="generateQuizBtn" class="primary" type="button">Maak quiz met Gemini</button>
+              <button id="clearQuizBtn" type="button">Wis quiz</button>
+            </div>
+            <div id="quizOutput" class="quiz-list">
+              <p class="muted">Maak automatisch meerkeuzevragen op basis van deze samenvatting.</p>
+            </div>
+          </div>
+
+          <div id="tutorTab" class="content-card hidden">
+            <div id="chatLog" class="chat-log">
+              <div class="msg">Stel een vraag over de geopende samenvatting. Gemini gebruikt de inhoud van deze SV als context.</div>
+            </div>
+            <div class="chat-form">
+              <input id="chatInput" type="text" placeholder="Vraag iets over deze samenvatting..." />
+              <button id="sendChatBtn" class="primary" type="button">Stuur</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="editorView" class="container hidden">
+          <div class="course-hero">
+            <span class="pill">Toevoegen / bewerken</span>
+            <h2 id="editorTitle">Nieuwe samenvatting</h2>
+            <p class="muted">Na opslaan wordt de samenvatting als mooie leesweergave geopend. De input verdwijnt dan.</p>
+          </div>
+
+          <div class="editor-grid">
+            <div class="content-card form-grid">
+              <input id="summaryTitle" type="text" placeholder="Titel van samenvatting" />
+              <select id="formatSelect" aria-label="Bestandstype">
+                <option value="markdown">Markdown</option>
+                <option value="text">Gewone tekst</option>
+                <option value="json">JSON</option>
+                <option value="javascript">JavaScript object</option>
+              </select>
+              <textarea id="summaryContent" spellcheck="false" placeholder="Plak of schrijf hier je samenvatting, JSON of JavaScript object..."></textarea>
+              <div class="course-actions">
+                <button id="saveBtn" class="primary" type="button">Opslaan</button>
+                <button id="formatBtn" type="button">Valideer / formatteer</button>
+                <button id="cancelEditBtn" type="button">Annuleren</button>
+              </div>
+            </div>
+            <div class="content-card preview-box">
+              <h3 style="margin-bottom:14px;">Preview</h3>
+              <div id="editorPreview" class="reader"></div>
+            </div>
+          </div>
+        </section>
       </div>
-      <textarea id="summaryContent" placeholder="Schrijf hier je samenvatting in Markdown of platte tekst..."></textarea>
     </main>
   </div>
 
   <dialog id="tokenDialog">
-    <form method="dialog">
-      <h2>GitHub token nodig</h2>
-      <p class="muted">Voer een Personal Access Token (classic) met minstens <code>gist</code>-scope in. Het token wordt alleen lokaal opgeslagen in je browser.</p>
-      <p class="muted"><strong>Let op:</strong> gebruik dit niet op gedeelde toestellen, want scripts op dezelfde site kunnen localStorage lezen.</p>
+    <form method="dialog" class="dialog-body">
+      <h2>GitHub token</h2>
+      <p class="muted">Gebruik een Personal Access Token met <code>gist</code>-scope. Het token wordt lokaal in je browser bewaard.</p>
       <p class="muted"><a href="https://github.com/settings/tokens/new?scopes=gist&description=Samenvattingen" target="_blank" rel="noopener noreferrer">Token aanmaken op GitHub</a></p>
       <div class="token-row">
         <input id="tokenInput" type="password" placeholder="ghp_..." autocomplete="off" />
         <button id="toggleTokenBtn" type="button">Toon</button>
-        <button id="saveTokenBtn" type="button" class="primary">Opslaan</button>
+        <button id="saveTokenBtn" class="primary" type="button">Opslaan</button>
       </div>
-      <p class="muted" style="margin-top:10px;">Je kan dit later aanpassen of wissen via <em>Token beheren</em>.</p>
-      <div style="display:flex; justify-content:flex-end; margin-top:10px;">
-        <button id="clearTokenBtn" type="button">Token wissen</button>
+      <div class="course-actions" style="justify-content:flex-end;">
+        <button id="clearTokenBtn" class="danger" type="button">Token wissen</button>
+        <button type="submit">Sluiten</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="geminiDialog">
+    <form method="dialog" class="dialog-body">
+      <h2>Gemini API key</h2>
+      <p class="muted">Nodig voor quiz en AI tutor. De key wordt lokaal in je browser bewaard.</p>
+      <p class="muted"><a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Gemini API key aanmaken</a></p>
+      <div class="token-row">
+        <input id="geminiKeyInput" type="password" placeholder="AIza..." autocomplete="off" />
+        <button id="toggleGeminiKeyBtn" type="button">Toon</button>
+        <button id="saveGeminiKeyBtn" class="primary" type="button">Opslaan</button>
+      </div>
+      <div class="course-actions" style="justify-content:flex-end;">
+        <button id="clearGeminiKeyBtn" class="danger" type="button">Key wissen</button>
+        <button type="submit">Sluiten</button>
       </div>
     </form>
   </dialog>
 
   <script>
     const APP_MARKER = '[Samenvattingen]';
-    const GIST_FILENAME = 'samenvatting.md';
     const TOKEN_STORAGE_KEY = 'samenvattingen_github_pat';
+    const GEMINI_STORAGE_KEY = 'samenvattingen_gemini_key';
     const MAX_GIST_PAGES = 10;
+    const GEMINI_MODEL = 'gemini-2.5-flash';
+    const FORMAT_CONFIG = {
+      markdown: { label: 'Markdown', filename: 'samenvatting.md' },
+      text: { label: 'Tekst', filename: 'samenvatting.txt' },
+      json: { label: 'JSON', filename: 'samenvatting.json' },
+      javascript: { label: 'JS object', filename: 'samenvatting.js' }
+    };
+    const SUMMARY_FILENAMES = Object.values(FORMAT_CONFIG).map(format => format.filename);
 
-    const state = { token: localStorage.getItem(TOKEN_STORAGE_KEY) || '', gists: [], selectedGistId: null };
+    const state = {
+      token: localStorage.getItem(TOKEN_STORAGE_KEY) || '',
+      geminiKey: localStorage.getItem(GEMINI_STORAGE_KEY) || '',
+      gists: [],
+      selected: null,
+      selectedFilename: null,
+      matches: [],
+      matchIndex: -1,
+      activeTab: 'summary'
+    };
 
-    const gistListEl = document.getElementById('gistList');
-    const titleEl = document.getElementById('summaryTitle');
-    const contentEl = document.getElementById('summaryContent');
-    const statusEl = document.getElementById('status');
-    const saveBtn = document.getElementById('saveBtn');
-    const reloadBtn = document.getElementById('reloadBtn');
-    const newBtn = document.getElementById('newBtn');
-    const tokenDialog = document.getElementById('tokenDialog');
-    const tokenInput = document.getElementById('tokenInput');
-    const saveTokenBtn = document.getElementById('saveTokenBtn');
-    const clearTokenBtn = document.getElementById('clearTokenBtn');
-    const toggleTokenBtn = document.getElementById('toggleTokenBtn');
+    const $ = id => document.getElementById(id);
+    const els = {
+      syncDot: $('syncDot'), syncText: $('syncText'), status: $('status'),
+      mainHeaderTitle: $('mainHeaderTitle'), mainHeaderSubtitle: $('mainHeaderSubtitle'),
+      dashboardView: $('dashboardView'), readerView: $('readerView'), editorView: $('editorView'),
+      gistList: $('gistList'), gistSearch: $('gistSearch'), summaryCount: $('summaryCount'), dashboardCoursesGrid: $('dashboardCoursesGrid'),
+      courseTitle: $('courseTitle'), courseFormat: $('courseFormat'), courseMeta: $('courseMeta'),
+      renderedContent: $('renderedContent'), contentSearch: $('contentSearch'), matchInfo: $('matchInfo'),
+      summaryTab: $('summaryTab'), quizTab: $('quizTab'), tutorTab: $('tutorTab'),
+      tabSummaryBtn: $('tabSummaryBtn'), tabQuizBtn: $('tabQuizBtn'), tabTutorBtn: $('tabTutorBtn'),
+      summaryTitle: $('summaryTitle'), formatSelect: $('formatSelect'), summaryContent: $('summaryContent'),
+      editorPreview: $('editorPreview'), editorTitle: $('editorTitle'),
+      tokenDialog: $('tokenDialog'), tokenInput: $('tokenInput'), toggleTokenBtn: $('toggleTokenBtn'),
+      saveTokenBtn: $('saveTokenBtn'), clearTokenBtn: $('clearTokenBtn'),
+      geminiDialog: $('geminiDialog'), geminiKeyInput: $('geminiKeyInput'), toggleGeminiKeyBtn: $('toggleGeminiKeyBtn'),
+      saveGeminiKeyBtn: $('saveGeminiKeyBtn'), clearGeminiKeyBtn: $('clearGeminiKeyBtn'),
+      quizOutput: $('quizOutput'), generateQuizBtn: $('generateQuizBtn'),
+      chatLog: $('chatLog'), chatInput: $('chatInput'), sendChatBtn: $('sendChatBtn'),
+      saveBtn: $('saveBtn')
+    };
 
     function setStatus(message, type = '') {
-      statusEl.textContent = message;
-      statusEl.className = 'status' + (type ? ' ' + type : '');
+      els.status.textContent = message;
+      els.status.className = 'status' + (type ? ' ' + type : '');
     }
 
-    function makeHeaders() {
+    function updateSyncUi() {
+      els.syncDot.classList.toggle('ok', !!state.token);
+      els.syncText.textContent = state.token ? 'GitHub sync actief' : 'Token niet ingesteld';
+    }
+
+    function escapeHtml(value = '') {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function parseTitle(description = '') {
+      return description.startsWith(APP_MARKER) ? description.replace(APP_MARKER, '').trim() || 'Ongetiteld' : 'Ongetiteld';
+    }
+
+    function normalize(value) {
+      return (value || '').trim().toLowerCase();
+    }
+
+    function getFormatByFilename(filename = '') {
+      return Object.entries(FORMAT_CONFIG).find(([, config]) => config.filename === filename)?.[0] || 'markdown';
+    }
+
+    function findSummaryFile(files = {}) {
+      for (const filename of SUMMARY_FILENAMES) {
+        if (files[filename]) return { filename, file: files[filename] };
+      }
+      const fallback = Object.keys(files)[0];
+      return fallback ? { filename: fallback, file: files[fallback] } : null;
+    }
+
+    function makeHeaders(token = state.token) {
       return {
         Accept: 'application/vnd.github+json',
-        Authorization: 'Bearer ' + state.token,
+        Authorization: 'Bearer ' + token,
         'X-GitHub-Api-Version': '2022-11-28'
       };
     }
 
-    function parseTitleFromDescription(description = '') {
-      return description.startsWith(APP_MARKER) ? description.replace(APP_MARKER, '').trim() || 'Ongetiteld' : 'Ongetiteld';
-    }
-
-    function normalizeTitle(value) {
-      return (value || '').trim().toLowerCase();
-    }
-
-    function toErrorMessage(resp, data) {
-      if (resp.status === 401) return 'Token ongeldig. Controleer je token en probeer opnieuw.';
+    function errorMessage(resp, data) {
+      if (resp.status === 401) return 'Token ongeldig.';
       if (resp.status === 403 && resp.headers.get('x-ratelimit-remaining') === '0') {
         const reset = resp.headers.get('x-ratelimit-reset');
         const when = reset ? new Date(Number(reset) * 1000).toLocaleString() : 'later';
-        return 'GitHub rate limit bereikt. Probeer opnieuw na ' + when + ' (lokale tijd).';
+        return 'GitHub rate limit bereikt. Probeer opnieuw na ' + when + '.';
       }
-      if (resp.status === 403) return 'Toegang geweigerd. Controleer of je token gist-rechten heeft.';
-      return (data && data.message) ? data.message : 'Onbekende fout (' + resp.status + ').';
+      if (resp.status === 403) return 'Toegang geweigerd. Controleer de gist-scope.';
+      return data?.message || 'Onbekende fout (' + resp.status + ').';
     }
 
     async function githubRequest(path, options = {}) {
@@ -140,266 +739,645 @@
           ...options,
           headers: { ...(options.headers || {}), ...makeHeaders() }
         });
-      } catch (error) {
-        console.error('GitHub API netwerkfout:', error);
+      } catch (_) {
         throw new Error('Netwerkfout tijdens contact met GitHub API.');
       }
       if (!resp.ok) {
         let data = null;
         try { data = await resp.json(); } catch (_) {}
-        throw new Error(toErrorMessage(resp, data));
+        throw new Error(errorMessage(resp, data));
       }
       if (resp.status === 204) return null;
       return resp.json();
     }
 
-    function renderGists() {
-      gistListEl.innerHTML = '';
-      if (!state.gists.length) {
-        gistListEl.innerHTML = '<li class="muted" style="padding:8px;">Nog geen opgeslagen samenvattingen gevonden.</li>';
-        return;
-      }
-
-      for (const gist of state.gists) {
-        const item = document.createElement('li');
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = state.selectedGistId === gist.id ? 'active' : '';
-        btn.innerHTML = '<strong>' + gist.title + '</strong><br><span class="muted">' + new Date(gist.updated_at).toLocaleString() + '</span>';
-        btn.addEventListener('click', () => loadGist(gist.id));
-        item.appendChild(btn);
-        gistListEl.appendChild(item);
-      }
-    }
-
     async function validateToken(token) {
-      let resp;
-      try {
-        resp = await fetch('https://api.github.com/user', {
-          headers: {
-            Accept: 'application/vnd.github+json',
-            Authorization: 'Bearer ' + token,
-            'X-GitHub-Api-Version': '2022-11-28'
-          }
-        });
-      } catch (_) {
-        throw new Error('Netwerkfout tijdens tokencontrole. Controleer je verbinding en probeer opnieuw.');
-      }
+      const resp = await fetch('https://api.github.com/gists?per_page=1', { headers: makeHeaders(token) });
       if (!resp.ok) {
         let data = null;
         try { data = await resp.json(); } catch (_) {}
-        throw new Error(toErrorMessage(resp, data));
+        throw new Error(errorMessage(resp, data));
       }
-      const gistsResp = await fetch('https://api.github.com/gists?per_page=1', {
-        headers: {
-          Accept: 'application/vnd.github+json',
-          Authorization: 'Bearer ' + token,
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      });
-      if (!gistsResp.ok) {
-        let gistError = null;
-        try { gistError = await gistsResp.json(); } catch (_) {}
-        throw new Error(toErrorMessage(gistsResp, gistError));
+    }
+
+    function showView(name) {
+      els.dashboardView.classList.toggle('hidden', name !== 'dashboard');
+      els.readerView.classList.toggle('hidden', name !== 'reader');
+      els.editorView.classList.toggle('hidden', name !== 'editor');
+      if (name === 'dashboard') {
+        els.mainHeaderTitle.textContent = 'Dashboard';
+        els.mainHeaderSubtitle.textContent = 'Kies een samenvatting of voeg er een toe.';
+      }
+      if (name === 'reader' && state.selected) {
+        els.mainHeaderTitle.textContent = state.selected.title;
+        els.mainHeaderSubtitle.textContent = 'Leesweergave, quiz en AI tutor.';
+      }
+      if (name === 'editor') {
+        els.mainHeaderTitle.textContent = state.selected ? 'Samenvatting bewerken' : 'Nieuwe samenvatting';
+        els.mainHeaderSubtitle.textContent = 'Opslaan opent daarna automatisch de leesweergave.';
+      }
+    }
+
+    function renderGists() {
+      const query = normalize(els.gistSearch.value);
+      const items = state.gists.filter(gist => !query || normalize(gist.title).includes(query) || normalize(gist.formatLabel).includes(query));
+      els.gistList.innerHTML = '';
+      els.summaryCount.textContent = String(state.gists.length);
+      if (!items.length) {
+        els.gistList.innerHTML = '<li class="muted" style="padding:12px;">Geen samenvattingen gevonden.</li>';
+        return;
+      }
+      for (const gist of items) {
+        const item = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'course-btn' + (state.selected?.id === gist.id ? ' active' : '');
+        btn.innerHTML =
+          '<span class="course-icon">' + escapeHtml(gist.formatLabel.slice(0, 1)) + '</span>' +
+          '<span style="min-width:0;"><span class="course-title">' + escapeHtml(gist.title) + '</span>' +
+          '<span class="course-meta">' + escapeHtml(gist.formatLabel) + ' - ' + new Date(gist.updated_at).toLocaleString() + '</span></span>';
+        btn.addEventListener('click', () => loadGist(gist.id));
+        item.appendChild(btn);
+        els.gistList.appendChild(item);
+      }
+      renderDashboardCards();
+    }
+
+    function renderDashboardCards() {
+      els.dashboardCoursesGrid.innerHTML = '';
+      if (!state.gists.length) {
+        els.dashboardCoursesGrid.innerHTML = '<div class="card"><p class="muted">Nog geen samenvattingen geladen. Voeg er een toe of herlaad je Gists.</p></div>';
+        return;
+      }
+      for (const gist of state.gists.slice(0, 6)) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'summary-card';
+        btn.innerHTML =
+          '<span class="card-icon">' + escapeHtml(gist.formatLabel.slice(0, 1)) + '</span>' +
+          '<h3>' + escapeHtml(gist.title) + '</h3>' +
+          '<p class="muted">' + escapeHtml(gist.formatLabel) + ' - ' + new Date(gist.updated_at).toLocaleString() + '</p>';
+        btn.addEventListener('click', () => loadGist(gist.id));
+        els.dashboardCoursesGrid.appendChild(btn);
       }
     }
 
     async function fetchAppGists() {
+      if (!state.token) {
+        updateSyncUi();
+        renderGists();
+        return;
+      }
       setStatus('Samenvattingen laden...');
       const all = [];
       let page = 1;
-      let capped = false;
       while (page <= MAX_GIST_PAGES) {
-        const pageData = await githubRequest('/gists?per_page=100&page=' + page);
-        if (!Array.isArray(pageData) || pageData.length === 0) break;
-        all.push(...pageData);
-        if (pageData.length < 100) break;
+        const data = await githubRequest('/gists?per_page=100&page=' + page);
+        if (!Array.isArray(data) || !data.length) break;
+        all.push(...data);
+        if (data.length < 100) break;
         page += 1;
-        capped = page > MAX_GIST_PAGES;
       }
-
       state.gists = all
-        .filter(g => {
-          const hasFile = !!(g.files && g.files[GIST_FILENAME]);
-          const hasMarker = typeof g.description === 'string' && g.description.includes(APP_MARKER);
-          return hasFile && hasMarker;
+        .filter(gist => typeof gist.description === 'string' && gist.description.includes(APP_MARKER) && findSummaryFile(gist.files || {}))
+        .map(gist => {
+          const summary = findSummaryFile(gist.files || {});
+          const format = getFormatByFilename(summary.filename);
+          return {
+            id: gist.id,
+            title: parseTitle(gist.description),
+            filename: summary.filename,
+            format,
+            formatLabel: FORMAT_CONFIG[format]?.label || 'Bestand',
+            updated_at: gist.updated_at
+          };
         })
-        .map(g => ({
-          id: g.id,
-          updated_at: g.updated_at,
-          title: parseTitleFromDescription(g.description || '')
-        }))
         .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
-
-      if (state.selectedGistId && !state.gists.some(g => g.id === state.selectedGistId)) {
-        state.selectedGistId = null;
-      }
-
       renderGists();
-      if (capped) {
-        setStatus('Laden voltooid (eerste ' + (MAX_GIST_PAGES * 100) + ' gists bekeken).', 'success');
-      } else {
-        setStatus('Laden voltooid.', 'success');
-      }
+      updateSyncUi();
+      setStatus('Laden voltooid.', 'success');
     }
 
     async function loadGist(gistId) {
-      setStatus('Samenvatting laden...');
-      const gist = await githubRequest('/gists/' + gistId);
-      const file = gist.files && gist.files[GIST_FILENAME];
-      if (!file || typeof file.content !== 'string') {
-        throw new Error('Gist bevat geen bestand ' + GIST_FILENAME + '.');
+      try {
+        setStatus('Samenvatting openen...');
+        const gist = await githubRequest('/gists/' + gistId);
+        const summary = findSummaryFile(gist.files || {});
+        if (!summary || typeof summary.file.content !== 'string') throw new Error('Geen ondersteund samenvattingbestand gevonden.');
+        const format = getFormatByFilename(summary.filename);
+        state.selected = {
+          id: gist.id,
+          title: parseTitle(gist.description),
+          content: summary.file.content,
+          filename: summary.filename,
+          format,
+          formatLabel: FORMAT_CONFIG[format]?.label || 'Bestand',
+          updated_at: gist.updated_at
+        };
+        state.selectedFilename = summary.filename;
+        state.activeTab = 'summary';
+        els.contentSearch.value = '';
+        els.quizOutput.innerHTML = '<p class="muted">Maak automatisch meerkeuzevragen op basis van deze samenvatting.</p>';
+        els.chatLog.innerHTML = '<div class="msg">Stel een vraag over de geopende samenvatting. Gemini gebruikt de inhoud van deze SV als context.</div>';
+        renderReader();
+        renderGists();
+        showView('reader');
+        setStatus('Samenvatting geopend.', 'success');
+      } catch (error) {
+        setStatus('Openen mislukt: ' + error.message, 'error');
       }
-      state.selectedGistId = gist.id;
-      titleEl.value = parseTitleFromDescription(gist.description || '');
-      contentEl.value = file.content;
+    }
+
+    function parseDataObject(format, content) {
+      if (format === 'json') return JSON.parse(content || 'null');
+      if (format === 'javascript') return new Function('return (' + (content || '{}') + ');')();
+      return null;
+    }
+
+    function getDisplayData(format, content, fallbackTitle) {
+      if (format !== 'json' && format !== 'javascript') {
+        return { title: fallbackTitle, category: FORMAT_CONFIG[format].label, summary: content, raw: content, hasSummaryField: true };
+      }
+      try {
+        const parsed = parseDataObject(format, content);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          const hasSummaryField = typeof parsed.summary === 'string' || typeof parsed.content === 'string';
+          return {
+            title: parsed.title || fallbackTitle,
+            category: parsed.category || FORMAT_CONFIG[format].label,
+            summary: parsed.summary || parsed.content || JSON.stringify(parsed, null, 2),
+            quiz: parsed.quiz,
+            parsed,
+            raw: JSON.stringify(parsed, null, 2),
+            hasSummaryField
+          };
+        }
+        return { title: fallbackTitle, category: FORMAT_CONFIG[format].label, summary: JSON.stringify(parsed, null, 2), parsed, raw: JSON.stringify(parsed, null, 2), hasSummaryField: false };
+      } catch (_) {
+        return { title: fallbackTitle, category: FORMAT_CONFIG[format].label, summary: content, raw: content, hasSummaryField: false };
+      }
+    }
+
+    function structuredToHtml(value) {
+      if (value === null) return '<span class="muted">null</span>';
+      if (Array.isArray(value)) {
+        return '<ol>' + value.map(item => '<li>' + structuredToHtml(item) + '</li>').join('') + '</ol>';
+      }
+      if (typeof value === 'object') {
+        return '<div style="display:grid;gap:12px;">' + Object.entries(value).map(([key, entry]) =>
+          '<div style="border:1px solid var(--line);border-radius:16px;padding:14px;background:#f8fafc;">' +
+          '<strong style="display:block;color:var(--indigo);margin-bottom:8px;">' + escapeHtml(key) + '</strong>' +
+          structuredToHtml(entry) +
+          '</div>'
+        ).join('') + '</div>';
+      }
+      if (typeof value === 'boolean') return '<span class="pill">' + (value ? 'true' : 'false') + '</span>';
+      if (typeof value === 'number') return '<strong>' + String(value) + '</strong>';
+      return textToHtml(String(value));
+    }
+
+    function markdownToHtml(value) {
+      let html = escapeHtml(value || '');
+      html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang, code) => {
+        const language = lang ? ' data-lang="' + escapeHtml(lang) + '"' : '';
+        return '<pre' + language + '><code>' + code.trim() + '</code></pre>';
+      });
+      html = html.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+      html = html.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+      html = html.replace(/^\> (.*)$/gm, '<blockquote>$1</blockquote>');
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/^\s*[-*] (.*)$/gm, '<li>$1</li>');
+      html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+      return html.split(/\n{2,}/).map(part => {
+        if (/^\s*<(h1|h2|h3|ul|pre|blockquote)/.test(part)) return part;
+        return '<p>' + part.replace(/\n/g, '<br>') + '</p>';
+      }).join('');
+    }
+
+    function textToHtml(value) {
+      return '<p>' + escapeHtml(value || '').replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>') + '</p>';
+    }
+
+    function contentToHtml(format, content, title) {
+      const data = getDisplayData(format, content, title);
+      const summary = String(data.summary || '');
+      if (summary.trim().startsWith('<')) return summary;
+      if (format === 'markdown' || summary.includes('# ') || summary.includes('## ') || summary.includes('- ')) return markdownToHtml(summary);
+      if ((format === 'json' || format === 'javascript') && !data.hasSummaryField && data.parsed !== undefined) return structuredToHtml(data.parsed);
+      if ((format === 'json' || format === 'javascript') && !data.hasSummaryField) return '<pre><code>' + escapeHtml(summary) + '</code></pre>';
+      return textToHtml(summary);
+    }
+
+    function applyHighlights(container, query) {
+      if (!query.trim()) return [];
+      const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          regex.lastIndex = 0;
+          return regex.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      });
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      const marks = [];
+      for (const node of nodes) {
+        regex.lastIndex = 0;
+        const fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        node.nodeValue.replace(regex, (match, index) => {
+          fragment.appendChild(document.createTextNode(node.nodeValue.slice(lastIndex, index)));
+          const mark = document.createElement('mark');
+          mark.textContent = match;
+          marks.push(mark);
+          fragment.appendChild(mark);
+          lastIndex = index + match.length;
+          return match;
+        });
+        fragment.appendChild(document.createTextNode(node.nodeValue.slice(lastIndex)));
+        node.parentNode.replaceChild(fragment, node);
+      }
+      return marks;
+    }
+
+    function renderReader() {
+      if (!state.selected) return;
+      const data = getDisplayData(state.selected.format, state.selected.content, state.selected.title);
+      els.courseTitle.textContent = data.title || state.selected.title;
+      els.courseFormat.textContent = data.category || state.selected.formatLabel;
+      els.courseMeta.textContent = state.selected.formatLabel + ' - laatst bijgewerkt ' + new Date(state.selected.updated_at).toLocaleString();
+      els.renderedContent.innerHTML = contentToHtml(state.selected.format, state.selected.content, state.selected.title);
+      state.matches = applyHighlights(els.renderedContent, els.contentSearch.value);
+      state.matchIndex = state.matches.length ? 0 : -1;
+      els.matchInfo.textContent = state.matches.length + ' hits';
+      if (Array.isArray(data.quiz) && data.quiz.length) renderQuiz(data.quiz);
+      setTab(state.activeTab);
+    }
+
+    function jumpMatch(direction) {
+      if (!state.matches.length) return;
+      state.matchIndex = (state.matchIndex + direction + state.matches.length) % state.matches.length;
+      state.matches[state.matchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      els.matchInfo.textContent = (state.matchIndex + 1) + '/' + state.matches.length + ' hits';
+    }
+
+    function setTab(tab) {
+      state.activeTab = tab;
+      els.tabSummaryBtn.classList.toggle('active', tab === 'summary');
+      els.tabQuizBtn.classList.toggle('active', tab === 'quiz');
+      els.tabTutorBtn.classList.toggle('active', tab === 'tutor');
+      els.summaryTab.classList.toggle('hidden', tab !== 'summary');
+      els.quizTab.classList.toggle('hidden', tab !== 'quiz');
+      els.tutorTab.classList.toggle('hidden', tab !== 'tutor');
+    }
+
+    function startNew() {
+      state.selected = null;
+      state.selectedFilename = null;
+      els.editorTitle.textContent = 'Nieuwe samenvatting';
+      els.summaryTitle.value = '';
+      els.formatSelect.value = 'markdown';
+      els.summaryContent.value = '';
+      updateEditorPreview();
       renderGists();
-      setStatus('Samenvatting geladen.', 'success');
+      showView('editor');
+      setStatus('Nieuwe samenvatting gestart.');
+    }
+
+    function editCurrent() {
+      if (!state.selected) return startNew();
+      els.editorTitle.textContent = 'Samenvatting bewerken';
+      els.summaryTitle.value = state.selected.title;
+      els.formatSelect.value = state.selected.format;
+      els.summaryContent.value = state.selected.content;
+      updateEditorPreview();
+      showView('editor');
+    }
+
+    function validateAndFormat(applyFormatting) {
+      const format = els.formatSelect.value;
+      const value = els.summaryContent.value || '';
+      if (format === 'json') {
+        const parsed = JSON.parse(value || 'null');
+        if (applyFormatting) els.summaryContent.value = JSON.stringify(parsed, null, 2);
+        return 'JSON is geldig.';
+      }
+      if (format === 'javascript') {
+        new Function('return (' + value + ');');
+        return 'JavaScript object is geldig.';
+      }
+      return 'Geen extra validatie nodig.';
+    }
+
+    function updateEditorPreview() {
+      const title = els.summaryTitle.value.trim() || 'Preview';
+      els.editorPreview.innerHTML = contentToHtml(els.formatSelect.value, els.summaryContent.value, title) || '<p class="muted">Nog geen inhoud.</p>';
     }
 
     function currentPayload() {
-      const title = (titleEl.value || '').trim() || 'Ongetiteld';
+      const format = els.formatSelect.value;
+      const parsedData = getDisplayData(format, els.summaryContent.value, '');
+      const title = els.summaryTitle.value.trim() || parsedData.title || 'Ongetiteld';
+      const targetFilename = FORMAT_CONFIG[format].filename;
+      const files = { [targetFilename]: { content: els.summaryContent.value || '' } };
+      if (state.selected?.id && state.selectedFilename && state.selectedFilename !== targetFilename && SUMMARY_FILENAMES.includes(state.selectedFilename)) {
+        files[state.selectedFilename] = null;
+      }
       return {
         title,
-        description: APP_MARKER + ' ' + title,
+        format,
+        targetFilename,
         body: {
           description: APP_MARKER + ' ' + title,
           public: false,
-          files: {
-            [GIST_FILENAME]: { content: contentEl.value || '' }
-          }
+          files
         }
       };
     }
 
     async function saveSummary() {
       if (!state.token) {
-        tokenDialog.showModal();
-        setStatus('Voer eerst een token in.', 'error');
+        els.tokenDialog.showModal();
+        setStatus('Voer eerst een GitHub token in.', 'error');
+        return;
+      }
+      try {
+        validateAndFormat(false);
+      } catch (error) {
+        setStatus('Opslaan gestopt: ' + error.message, 'error');
         return;
       }
 
       const payload = currentPayload();
+      els.saveBtn.disabled = true;
       setStatus('Opslaan...');
-      saveBtn.disabled = true;
       try {
-        let targetId = state.selectedGistId;
-
+        let targetId = state.selected?.id || null;
         if (!targetId) {
-          const normalizedTitle = normalizeTitle(payload.title);
-          const sameTitleMatches = state.gists.filter(g => normalizeTitle(g.title) === normalizedTitle);
-          if (sameTitleMatches.length > 1) {
-            throw new Error('Meerdere samenvattingen met dezelfde titel gevonden. Selecteer eerst de juiste in de lijst of geef deze samenvatting een unieke titel.');
-          }
-          if (sameTitleMatches.length === 1) targetId = sameTitleMatches[0].id;
+          const sameTitle = state.gists.filter(gist => normalize(gist.title) === normalize(payload.title));
+          if (sameTitle.length === 1) targetId = sameTitle[0].id;
+          if (sameTitle.length > 1) throw new Error('Meerdere samenvattingen met deze titel. Kies een unieke titel.');
         }
+        const saved = targetId
+          ? await githubRequest('/gists/' + targetId, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload.body) })
+          : await githubRequest('/gists', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload.body) });
 
-        let saved;
-        if (targetId) {
-          saved = await githubRequest('/gists/' + targetId, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload.body)
-          });
-        } else {
-          saved = await githubRequest('/gists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload.body)
-          });
-        }
-
-        state.selectedGistId = saved.id;
         await fetchAppGists();
-        setStatus('Opgeslagen op GitHub Gist.', 'success');
+        await loadGist(saved.id);
+        setStatus('Opgeslagen en geopend.', 'success');
       } catch (error) {
         setStatus('Opslaan mislukt: ' + error.message, 'error');
       } finally {
-        saveBtn.disabled = false;
+        els.saveBtn.disabled = false;
       }
     }
 
-    function resetEditor() {
-      state.selectedGistId = null;
-      titleEl.value = '';
-      contentEl.value = '';
-      renderGists();
-      setStatus('Nieuwe samenvatting gestart.');
+    function getStudyContext() {
+      if (!state.selected) throw new Error('Open eerst een samenvatting.');
+      const data = getDisplayData(state.selected.format, state.selected.content, state.selected.title);
+      const content = String(data.summary || state.selected.content || '').trim();
+      if (!content) throw new Error('Deze samenvatting heeft geen inhoud.');
+      return { title: data.title || state.selected.title, content };
+    }
+
+    async function callGemini(prompt) {
+      if (!state.geminiKey) {
+        els.geminiDialog.showModal();
+        throw new Error('Gemini API key ontbreekt.');
+      }
+      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(state.geminiKey), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: .35 } })
+      });
+      if (!resp.ok) {
+        let data = null;
+        try { data = await resp.json(); } catch (_) {}
+        throw new Error(data?.error?.message || 'Gemini request mislukt (' + resp.status + ').');
+      }
+      const data = await resp.json();
+      const text = data?.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('\n').trim();
+      if (!text) throw new Error('Gemini gaf geen tekst terug.');
+      return text;
+    }
+
+    function parseJsonFromText(text) {
+      const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+      return JSON.parse((fenced ? fenced[1] : text).trim());
+    }
+
+    function renderQuiz(questions) {
+      els.quizOutput.innerHTML = '';
+      questions.forEach((question, index) => {
+        const card = document.createElement('article');
+        card.className = 'quiz-card';
+        const correctIndex = Number(question.correctIndex ?? question.answer ?? 0);
+        card.innerHTML = '<h3>' + (index + 1) + '. ' + escapeHtml(question.question) + '</h3>';
+        const options = document.createElement('div');
+        options.className = 'quiz-options';
+        (question.options || []).forEach((option, optionIndex) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = String.fromCharCode(65 + optionIndex) + '. ' + option;
+          btn.addEventListener('click', () => {
+            for (const other of options.querySelectorAll('button')) other.disabled = true;
+            btn.classList.add(optionIndex === correctIndex ? 'correct' : 'wrong');
+            if (optionIndex !== correctIndex) options.children[correctIndex]?.classList.add('correct');
+            explanation.classList.remove('hidden');
+          });
+          options.appendChild(btn);
+        });
+        const explanation = document.createElement('p');
+        explanation.className = 'muted hidden';
+        explanation.style.marginTop = '12px';
+        explanation.textContent = question.explanation || '';
+        card.appendChild(options);
+        card.appendChild(explanation);
+        els.quizOutput.appendChild(card);
+      });
+    }
+
+    async function generateQuiz() {
+      let context;
+      try {
+        context = getStudyContext();
+      } catch (error) {
+        setStatus(error.message, 'error');
+        return;
+      }
+      els.generateQuizBtn.disabled = true;
+      setStatus('Quiz maken met Gemini...');
+      try {
+        const answer = await callGemini(
+          'Maak 6 meerkeuzevragen in het Nederlands op basis van deze samenvatting. Geef alleen geldige JSON terug met deze vorm: ' +
+          '{"questions":[{"question":"...","options":["...","...","...","..."],"correctIndex":0,"explanation":"..."}]} ' +
+          'Gebruik exact 4 opties per vraag.\n\nTitel: ' + context.title + '\n\nSamenvatting:\n' + context.content
+        );
+        const parsed = parseJsonFromText(answer);
+        if (!Array.isArray(parsed.questions)) throw new Error('Geen questions-array ontvangen.');
+        renderQuiz(parsed.questions);
+        setStatus('Quiz klaar.', 'success');
+      } catch (error) {
+        els.quizOutput.innerHTML = '<p class="muted">Quiz maken mislukt: ' + escapeHtml(error.message) + '</p>';
+        setStatus('Quiz maken mislukt: ' + error.message, 'error');
+      } finally {
+        els.generateQuizBtn.disabled = false;
+      }
+    }
+
+    function appendChat(role, text) {
+      const bubble = document.createElement('div');
+      bubble.className = 'msg' + (role === 'user' ? ' user' : '');
+      bubble.innerHTML = textToHtml(text);
+      els.chatLog.appendChild(bubble);
+      bubble.scrollIntoView({ block: 'end' });
+    }
+
+    async function sendChat() {
+      const question = els.chatInput.value.trim();
+      if (!question) return;
+      let context;
+      try {
+        context = getStudyContext();
+      } catch (error) {
+        setStatus(error.message, 'error');
+        return;
+      }
+      appendChat('user', question);
+      els.chatInput.value = '';
+      els.sendChatBtn.disabled = true;
+      setStatus('Gemini denkt na...');
+      try {
+        const answer = await callGemini(
+          'Beantwoord in het Nederlands. Gebruik de samenvatting hieronder als belangrijkste context, maar je mag ook algemene kennis gebruiken om extra uitleg, voorbeelden of achtergrond te geven. ' +
+          'Maak duidelijk onderscheid tussen wat rechtstreeks uit de samenvatting komt en wat aanvullende uitleg is wanneer dat relevant is.\n\n' +
+          'Titel: ' + context.title + '\n\nSamenvatting:\n' + context.content + '\n\nVraag: ' + question
+        );
+        appendChat('assistant', answer);
+        setStatus('Antwoord klaar.', 'success');
+      } catch (error) {
+        appendChat('assistant', 'Fout: ' + error.message);
+        setStatus('Gemini mislukt: ' + error.message, 'error');
+      } finally {
+        els.sendChatBtn.disabled = false;
+      }
     }
 
     async function saveToken() {
-      const token = tokenInput.value.trim();
-      if (!token) {
-        setStatus('Voer een token in.', 'error');
-        return;
-      }
-      saveTokenBtn.disabled = true;
+      const token = els.tokenInput.value.trim();
+      if (!token) return setStatus('Voer een token in.', 'error');
+      els.saveTokenBtn.disabled = true;
       try {
         await validateToken(token);
         state.token = token;
         localStorage.setItem(TOKEN_STORAGE_KEY, token);
-        tokenDialog.close();
-        setStatus('Token opgeslagen.', 'success');
+        els.tokenDialog.close();
+        updateSyncUi();
         await fetchAppGists();
+        setStatus('Token opgeslagen.', 'success');
       } catch (error) {
         setStatus('Token ongeldig: ' + error.message, 'error');
       } finally {
-        saveTokenBtn.disabled = false;
+        els.saveTokenBtn.disabled = false;
       }
     }
 
     function clearToken() {
       state.token = '';
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
       state.gists = [];
-      state.selectedGistId = null;
+      state.selected = null;
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      updateSyncUi();
       renderGists();
-      setStatus('Token gewist. Synchronisatie uitgeschakeld.');
-      tokenInput.value = '';
-      if (tokenDialog.open) tokenDialog.close();
-      tokenDialog.showModal();
+      showView('dashboard');
+      setStatus('Token gewist.');
+    }
+
+    function saveGeminiKey() {
+      const key = els.geminiKeyInput.value.trim();
+      if (!key) return setStatus('Voer een Gemini API key in.', 'error');
+      state.geminiKey = key;
+      localStorage.setItem(GEMINI_STORAGE_KEY, key);
+      els.geminiDialog.close();
+      setStatus('Gemini key opgeslagen.', 'success');
+    }
+
+    function clearGeminiKey() {
+      state.geminiKey = '';
+      localStorage.removeItem(GEMINI_STORAGE_KEY);
+      els.geminiKeyInput.value = '';
+      setStatus('Gemini key gewist.');
+    }
+
+    function togglePassword(input, button) {
+      const hidden = input.type === 'password';
+      input.type = hidden ? 'text' : 'password';
+      button.textContent = hidden ? 'Verberg' : 'Toon';
+    }
+
+    function wireEvents() {
+      $('newBtn').addEventListener('click', startNew);
+      $('heroNewBtn').addEventListener('click', startNew);
+      $('readerNewBtn').addEventListener('click', startNew);
+      $('reloadBtn').addEventListener('click', () => state.token ? fetchAppGists().catch(error => setStatus(error.message, 'error')) : els.tokenDialog.showModal());
+      $('manageTokenBtn').addEventListener('click', () => { els.tokenInput.value = state.token; els.tokenDialog.showModal(); });
+      $('manageGeminiBtn').addEventListener('click', () => { els.geminiKeyInput.value = state.geminiKey; els.geminiDialog.showModal(); });
+      $('backDashboardBtn').addEventListener('click', () => showView('dashboard'));
+      $('editBtn').addEventListener('click', editCurrent);
+      $('cancelEditBtn').addEventListener('click', () => state.selected ? showView('reader') : showView('dashboard'));
+      els.gistSearch.addEventListener('input', renderGists);
+      els.saveBtn.addEventListener('click', saveSummary);
+      $('formatBtn').addEventListener('click', () => {
+        try {
+          const message = validateAndFormat(true);
+          updateEditorPreview();
+          setStatus(message, 'success');
+        } catch (error) {
+          setStatus('Validatie mislukt: ' + error.message, 'error');
+        }
+      });
+      els.summaryTitle.addEventListener('input', updateEditorPreview);
+      els.formatSelect.addEventListener('change', updateEditorPreview);
+      els.summaryContent.addEventListener('input', updateEditorPreview);
+      els.contentSearch.addEventListener('input', renderReader);
+      $('prevMatchBtn').addEventListener('click', () => jumpMatch(-1));
+      $('nextMatchBtn').addEventListener('click', () => jumpMatch(1));
+      els.tabSummaryBtn.addEventListener('click', () => setTab('summary'));
+      els.tabQuizBtn.addEventListener('click', () => setTab('quiz'));
+      els.tabTutorBtn.addEventListener('click', () => setTab('tutor'));
+      els.generateQuizBtn.addEventListener('click', generateQuiz);
+      $('clearQuizBtn').addEventListener('click', () => {
+        els.quizOutput.innerHTML = '<p class="muted">Quiz gewist.</p>';
+        setStatus('Quiz gewist.');
+      });
+      els.sendChatBtn.addEventListener('click', sendChat);
+      els.chatInput.addEventListener('keydown', event => { if (event.key === 'Enter') sendChat(); });
+      els.saveTokenBtn.addEventListener('click', saveToken);
+      els.clearTokenBtn.addEventListener('click', clearToken);
+      els.toggleTokenBtn.addEventListener('click', () => togglePassword(els.tokenInput, els.toggleTokenBtn));
+      els.saveGeminiKeyBtn.addEventListener('click', saveGeminiKey);
+      els.clearGeminiKeyBtn.addEventListener('click', clearGeminiKey);
+      els.toggleGeminiKeyBtn.addEventListener('click', () => togglePassword(els.geminiKeyInput, els.toggleGeminiKeyBtn));
     }
 
     async function initialize() {
-      document.getElementById('manageTokenBtn').addEventListener('click', () => {
-        tokenInput.value = state.token;
-        tokenInput.type = 'password';
-        toggleTokenBtn.textContent = 'Toon';
-        tokenDialog.showModal();
-      });
-      reloadBtn.addEventListener('click', async () => {
-        if (!state.token) {
-          tokenDialog.showModal();
-          return;
-        }
-        try {
-          await fetchAppGists();
-        } catch (error) {
-          setStatus('Laden mislukt: ' + error.message, 'error');
-        }
-      });
-      newBtn.addEventListener('click', resetEditor);
-      saveBtn.addEventListener('click', saveSummary);
-      saveTokenBtn.addEventListener('click', saveToken);
-      clearTokenBtn.addEventListener('click', clearToken);
-      toggleTokenBtn.addEventListener('click', () => {
-        const hidden = tokenInput.type === 'password';
-        tokenInput.type = hidden ? 'text' : 'password';
-        toggleTokenBtn.textContent = hidden ? 'Verberg' : 'Toon';
-      });
-
+      wireEvents();
+      updateSyncUi();
+      renderGists();
+      showView('dashboard');
       if (!state.token) {
-        setStatus('GitHub token vereist om te starten.', 'error');
-        tokenDialog.showModal();
+        els.tokenDialog.showModal();
+        setStatus('GitHub token vereist om Gists te laden.', 'error');
         return;
       }
-
       try {
         await validateToken(state.token);
         await fetchAppGists();
       } catch (error) {
         setStatus('Tokencontrole mislukt: ' + error.message, 'error');
-        tokenDialog.showModal();
+        els.tokenDialog.showModal();
       }
     }
 
