@@ -418,6 +418,36 @@ let flashcardRepeat = new Set();
 // --- GIST SYNC STATE ---
 let githubToken = null;
 let gistId = null;
+// --- DATABASE INITIALISATIE ---
+let coursesDatabase = [];
+let quizHistory = [];
+let tutorChats = {};
+let githubToken = localStorage.getItem('sp_github_token') || "";
+let gistId = localStorage.getItem('sp_gist_id') || "";
+
+function loadFromLocalStorage() {
+    try {
+        const courses = localStorage.getItem('sp_courses');
+        if (courses) coursesDatabase = JSON.parse(courses);
+
+        const history = localStorage.getItem('sp_quiz_history');
+        if (history) quizHistory = JSON.parse(history);
+
+        const chats = localStorage.getItem('sp_tutor_chats');
+        if (chats) tutorChats = JSON.parse(chats);
+    } catch (e) {
+        console.error("Fout bij laden van LocalStorage", e);
+    }
+}
+
+function saveToLocalStorage() {
+    localStorage.setItem('sp_courses', JSON.stringify(coursesDatabase));
+    localStorage.setItem('sp_quiz_history', JSON.stringify(quizHistory));
+    localStorage.setItem('sp_tutor_chats', JSON.stringify(tutorChats));
+}
+
+// Direct inladen bij openen van de pagina
+loadFromLocalStorage();
 const GIST_FILENAME = 'studieportaal_data.json';
 
 // --- STUDY TIMER ---
@@ -817,7 +847,19 @@ function loadCoursesList() {
     wrap.appendChild(btn); wrap.appendChild(del); list.appendChild(wrap);
   });
 }
+  
+// --- PAGINA INITIALISEREN BIJ LADEN (Blok 2 staat nu correct hier) ---
+document.addEventListener("DOMContentLoaded", () => {
+    loadFromLocalStorage(); // Laad de opgeslagen data in
+    loadCoursesList();      // Bouw de zijbalk op
+    renderDashboard();      // Toon de statistieken en kaarten op het hoofdscherm
+    if (typeof updateDarkModeIcons === 'function') {
+        updateDarkModeIcons();
+    }
+});
+
 function filterCourses() { loadCoursesList(); }
+
 function renderDashboard() {
   const today = new Date().toDateString();
   const yesterday = new Date(Date.now()-86400000).toDateString();
@@ -825,20 +867,32 @@ function renderDashboard() {
   let streak = 0;
   if (dates.has(today)) { streak=1; let d=new Date(Date.now()-86400000); while(dates.has(d.toDateString())){streak++;d=new Date(d.getTime()-86400000);} }
   else if (dates.has(yesterday)) { let d=new Date(Date.now()-86400000); while(dates.has(d.toDateString())){streak++;d=new Date(d.getTime()-86400000);} }
-  const sd = document.getElementById('streakDisplay'); const sdd = document.getElementById('streakDisplayDash');
+  
+  const sd = document.getElementById('streakDisplay'); 
+  const sdd = document.getElementById('streakDisplayDash');
   if (sd) sd.textContent = streak + ' Dag' + (streak!==1?'en':'') + ' Streak!';
   if (sdd) sdd.textContent = streak;
+  
   const total = coursesDatabase.length;
-  document.getElementById('totalCoursesCount').textContent = total;
-  document.getElementById('coursesBadge').textContent = total;
-  document.getElementById('totalQuizzesCompleted').textContent = quizHistory.length;
-  if (quizHistory.length>0) { const avg=Math.round(quizHistory.reduce((s,h)=>s+h.scorePercentage,0)/quizHistory.length); document.getElementById('averageScore').textContent=avg+'%'; }
-  else document.getElementById('averageScore').textContent = '-';
+  if (document.getElementById('totalCoursesCount')) document.getElementById('totalCoursesCount').textContent = total;
+  if (document.getElementById('coursesBadge')) document.getElementById('coursesBadge').textContent = total;
+  if (document.getElementById('totalQuizzesCompleted')) document.getElementById('totalQuizzesCompleted').textContent = quizHistory.length;
+  
+  if (quizHistory.length>0) { 
+    const avg=Math.round(quizHistory.reduce((s,h)=>s+h.scorePercentage,0)/quizHistory.length); 
+    if (document.getElementById('averageScore')) document.getElementById('averageScore').textContent=avg+'%'; 
+  } else {
+    if (document.getElementById('averageScore')) document.getElementById('averageScore').textContent = '-';
+  }
+  
   const grid = document.getElementById('dashboardCoursesGrid');
   const empty = document.getElementById('emptyState');
+  if (!grid) return;
+  
   grid.innerHTML = "";
-  if (total===0) { empty.classList.remove('hidden'); return; }
-  empty.classList.add('hidden');
+  if (total===0) { if (empty) empty.classList.remove('hidden'); return; }
+  if (empty) empty.classList.add('hidden');
+  
   coursesDatabase.forEach(course => {
     const card = document.createElement('div');
     card.className = 'bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group cursor-pointer';
