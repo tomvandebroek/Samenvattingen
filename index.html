@@ -67,7 +67,7 @@
       <h2>GitHub token nodig</h2>
       <p class="muted">Voer een Personal Access Token (classic) met minstens <code>gist</code>-scope in. Het token wordt alleen lokaal opgeslagen in je browser.</p>
       <p class="muted"><strong>Let op:</strong> gebruik dit niet op gedeelde toestellen, want scripts op dezelfde site kunnen localStorage lezen.</p>
-      <p class="muted"><a href="https://github.com/settings/tokens/new?scopes=gist&description=Samenvattingen" target="_blank" rel="noopener">Token aanmaken op GitHub</a></p>
+      <p class="muted"><a href="https://github.com/settings/tokens/new?scopes=gist&description=Samenvattingen" target="_blank" rel="noopener noreferrer">Token aanmaken op GitHub</a></p>
       <div class="token-row">
         <input id="tokenInput" type="password" placeholder="ghp_..." autocomplete="off" />
         <button id="toggleTokenBtn" type="button">Toon</button>
@@ -126,7 +126,7 @@
       if (resp.status === 401) return 'Token ongeldig. Controleer je token en probeer opnieuw.';
       if (resp.status === 403 && resp.headers.get('x-ratelimit-remaining') === '0') {
         const reset = resp.headers.get('x-ratelimit-reset');
-        const when = reset ? new Date(Number(reset) * 1000).toLocaleTimeString() : 'later';
+        const when = reset ? new Date(Number(reset) * 1000).toLocaleString() : 'later';
         return 'GitHub rate limit bereikt. Probeer opnieuw na ' + when + ' (lokale tijd).';
       }
       if (resp.status === 403) return 'Toegang geweigerd. Controleer of je token gist-rechten heeft.';
@@ -222,8 +222,7 @@
         .filter(g => {
           const hasFile = !!(g.files && g.files[GIST_FILENAME]);
           const hasMarker = typeof g.description === 'string' && g.description.includes(APP_MARKER);
-          const isLegacy = typeof g.description === 'string' && g.description.includes('StudiePortaal Data');
-          return hasFile && (hasMarker || isLegacy);
+          return hasFile && hasMarker;
         })
         .map(g => ({
           id: g.id,
@@ -290,7 +289,7 @@
           const normalizedTitle = normalizeTitle(payload.title);
           const sameTitleMatches = state.gists.filter(g => normalizeTitle(g.title) === normalizedTitle);
           if (sameTitleMatches.length > 1) {
-            throw new Error('Meerdere samenvattingen met dezelfde titel gevonden. Selecteer eerst de juiste in de lijst.');
+            throw new Error('Meerdere samenvattingen met dezelfde titel gevonden. Selecteer eerst de juiste in de lijst of geef deze samenvatting een unieke titel.');
           }
           if (sameTitleMatches.length === 1) targetId = sameTitleMatches[0].id;
         }
