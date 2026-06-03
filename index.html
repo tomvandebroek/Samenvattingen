@@ -66,6 +66,7 @@
     <form method="dialog">
       <h2>GitHub token nodig</h2>
       <p class="muted">Voer een Personal Access Token (classic) met minstens <code>gist</code>-scope in. Het token wordt alleen lokaal opgeslagen in je browser.</p>
+      <p class="muted"><strong>Let op:</strong> gebruik dit niet op gedeelde toestellen, want scripts op dezelfde site kunnen localStorage lezen.</p>
       <p class="muted"><a href="https://github.com/settings/tokens/new?scopes=gist&description=Samenvattingen" target="_blank" rel="noopener">Token aanmaken op GitHub</a></p>
       <div class="token-row">
         <input id="tokenInput" type="password" placeholder="ghp_..." autocomplete="off" />
@@ -83,6 +84,7 @@
     const APP_MARKER = '[Samenvattingen]';
     const GIST_FILENAME = 'samenvatting.md';
     const TOKEN_STORAGE_KEY = 'samenvattingen_github_pat';
+    const MAX_GIST_PAGES = 10;
 
     const state = { token: localStorage.getItem(TOKEN_STORAGE_KEY) || '', gists: [], selectedGistId: null };
 
@@ -125,7 +127,7 @@
       if (resp.status === 403 && resp.headers.get('x-ratelimit-remaining') === '0') {
         const reset = resp.headers.get('x-ratelimit-reset');
         const when = reset ? new Date(Number(reset) * 1000).toLocaleTimeString() : 'later';
-        return 'GitHub rate limit bereikt. Probeer opnieuw na ' + when + '.';
+        return 'GitHub rate limit bereikt. Probeer opnieuw na ' + when + ' (lokale tijd).';
       }
       if (resp.status === 403) return 'Toegang geweigerd. Controleer of je token gist-rechten heeft.';
       return (data && data.message) ? data.message : 'Onbekende fout (' + resp.status + ').';
@@ -138,7 +140,8 @@
           ...options,
           headers: { ...(options.headers || {}), ...makeHeaders() }
         });
-      } catch (_) {
+      } catch (error) {
+        console.error('GitHub API netwerkfout:', error);
         throw new Error('Netwerkfout tijdens contact met GitHub API.');
       }
       if (!resp.ok) {
@@ -205,19 +208,22 @@
       setStatus('Samenvattingen laden...');
       const all = [];
       let page = 1;
-      while (true) {
+      let capped = false;
+      while (page <= MAX_GIST_PAGES) {
         const pageData = await githubRequest('/gists?per_page=100&page=' + page);
         if (!Array.isArray(pageData) || pageData.length === 0) break;
         all.push(...pageData);
         if (pageData.length < 100) break;
         page += 1;
+        capped = page > MAX_GIST_PAGES;
       }
 
       state.gists = all
         .filter(g => {
           const hasFile = !!(g.files && g.files[GIST_FILENAME]);
           const hasMarker = typeof g.description === 'string' && g.description.includes(APP_MARKER);
-          return hasFile || hasMarker;
+          const isLegacy = typeof g.description === 'string' && g.description.includes('StudiePortaal Data');
+          return hasFile && (hasMarker || isLegacy);
         })
         .map(g => ({
           id: g.id,
@@ -231,7 +237,11 @@
       }
 
       renderGists();
-      setStatus('Laden voltooid.', 'success');
+      if (capped) {
+        setStatus('Laden voltooid (eerste ' + (MAX_GIST_PAGES * 100) + ' gists bekeken).', 'success');
+      } else {
+        setStatus('Laden voltooid.', 'success');
+      }
     }
 
     async function loadGist(gistId) {
@@ -278,8 +288,11 @@
 
         if (!targetId) {
           const normalizedTitle = normalizeTitle(payload.title);
-          const sameTitle = state.gists.find(g => normalizeTitle(g.title) === normalizedTitle);
-          if (sameTitle) targetId = sameTitle.id;
+          const sameTitleMatches = state.gists.filter(g => normalizeTitle(g.title) === normalizedTitle);
+          if (sameTitleMatches.length > 1) {
+            throw new Error('Meerdere samenvattingen met dezelfde titel gevonden. Selecteer eerst de juiste in de lijst.');
+          }
+          if (sameTitleMatches.length === 1) targetId = sameTitleMatches[0].id;
         }
 
         let saved;
