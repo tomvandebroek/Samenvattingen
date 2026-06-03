@@ -133,10 +133,15 @@
     }
 
     async function githubRequest(path, options = {}) {
-      const resp = await fetch('https://api.github.com' + path, {
-        ...options,
-        headers: { ...(options.headers || {}), ...makeHeaders() }
-      });
+      let resp;
+      try {
+        resp = await fetch('https://api.github.com' + path, {
+          ...options,
+          headers: { ...(options.headers || {}), ...makeHeaders() }
+        });
+      } catch (_) {
+        throw new Error('Netwerkfout tijdens contact met GitHub API.');
+      }
       if (!resp.ok) {
         let data = null;
         try { data = await resp.json(); } catch (_) {}
@@ -166,13 +171,18 @@
     }
 
     async function validateToken(token) {
-      const resp = await fetch('https://api.github.com/user', {
-        headers: {
-          Accept: 'application/vnd.github+json',
-          Authorization: 'Bearer ' + token,
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      });
+      let resp;
+      try {
+        resp = await fetch('https://api.github.com/user', {
+          headers: {
+            Accept: 'application/vnd.github+json',
+            Authorization: 'Bearer ' + token,
+            'X-GitHub-Api-Version': '2022-11-28'
+          }
+        });
+      } catch (_) {
+        throw new Error('Netwerkfout tijdens tokencontrole. Controleer je verbinding en probeer opnieuw.');
+      }
       if (!resp.ok) {
         let data = null;
         try { data = await resp.json(); } catch (_) {}
